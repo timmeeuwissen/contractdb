@@ -7,7 +7,7 @@
   },
   "tableConfiguration": {
     "contractForecastRemarks": {
-      "omitListing": true
+      "ommitFromListing": true
     }
   }
 }

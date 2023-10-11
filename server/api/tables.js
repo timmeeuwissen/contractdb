@@ -2,9 +2,10 @@ import connection from '~/connection'
 import config from '~/config.json'
 
 export default defineEventHandler(async event => {
-  const omitFromListing = Object.entries(config).reduce(
-    (acc, entry) => [...acc, entry[1].ommitFromListing ? `'${entry[0]}'` : undefined], 
+  const omitFromListing = Object.entries(config.tableConfiguration).reduce(
+    (acc, entry) => entry[1].ommitFromListing ? [...acc, `'${entry[0]}'`] : acc, 
     []).join(', ')
+  console.log(omitFromListing);
   const [records] = await connection().promise().query(
     omitFromListing 
     ? `show tables where Tables_in_${config.connection.database} not in (${omitFromListing})` 
