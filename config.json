@@ -1,0 +1,13 @@
+{
+  "connection": {
+    "host": "localhost",
+    "user": "contractDB",
+    "password": "contractDB",
+    "database": "contractdb"
+  },
+  "tableConfiguration": {
+    "contractForecastRemarks": {
+      "omitListing": true
+    }
+  }
+}
