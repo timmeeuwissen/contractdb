@@ -1,6 +1,12 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
-  devtools: { enabled: true },
+  devtools: {
+    enabled: true,
+
+    timeline: {
+      enabled: true,
+    },
+  },
   pages: true,
   css: [
     '@mdi/font/css/materialdesignicons.min.css',
@@ -9,9 +15,12 @@ export default defineNuxtConfig({
   build: {
     transpile: ['vuetify'],
   },
-  vite: {
-    define: {
-      'process.env.DEBUG': false,
-    },
-  },
+  modules: [
+    '@pinia/nuxt',
+  ],
+  // vite: {
+  //   define: {
+  //     'process.env.DEBUG': false,
+  //   },
+  // },
 })

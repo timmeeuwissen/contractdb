@@ -1,4 +1,4 @@
-import connection from '~/connection'
+import connection from '~/helpers/connection'
 import config from '~/config.json'
 
 export default defineEventHandler(async event => {

@@ -27,5 +27,61 @@
     "domains": {
       "identifiedBy": "{{ domain }}"
     }
+  },
+  "imports": {
+    "vendormanagement": {
+      "type": "text/csv",
+      "parserConfig": {
+        "delimiter": ",",
+        "escape": "\"",
+        "quote": "\"",
+        "columns": true
+      },
+      "modelMap": {
+        "Id": { "method": "split", "args": ",", "target": "contracts.ContractId"},
+        "xECM code": null,
+        "Budget Type": { "target": ["contracts.budgetTypeId", "budgetType.type"]},
+        "Active / Inactive": { "target": "contracts.active" },
+        "Vendor Entity Name": { "target": ["contracts.vendorId", "vendors.name"] },
+        "Underlying vendor": { "method": "conditionalRemap", "args": {"condition": "exists", "Vendor Entity Name"}, "target": "vendors.name" },
+        "Ariba / \n Readsoft": null,
+        "Ariba PR/PO": null,
+        "Date Next PO available": null,
+        "Domain":{"target": ["contracts.domainId","domains.domain"]} ,
+        "ITVM Category": null,
+        "ITVM Sub Category": null,
+        "Contract Scope": null,
+        "Contract cost drivers": null,
+        "notice period (Months)": null,
+        "Contract Start date": null,
+        "Contract end date": null,
+        "Demand review date": null,
+        "SDM-er": null,
+        "ITVM": null,
+        "Product Stakeholder": null,
+        "Invoice code": null,
+        "YP 2023": null,
+        "YP 2023 CAPEX": null,
+        "Actuals\n OPEX": null,
+        "Actuals vs YP\n OPEX": null,
+        "Actuals CAPEX": null,
+        "LE Actual": null,
+        "LE1 2023": null,
+        "LE1 CAPEX": null,
+        "LE1 remark": null,
+        "LE remark": null,
+        "YP 2023 Remark": null,
+        "FC OPEX (calc)": null,
+        "Cost KPI": null,
+        "Current Forecast": null,
+        "∆": null,
+        "YP 2024 OPEX (Draft)": null,
+        "YP 2024 CAPEX (Draft)": null,
+        "YP 2024 (Draft) Remark": null,
+        "YP 2024 OPEX delta": null,
+        "YP 2024 Explanation": null,
+        "SK": null
+      }
+    }
   }
 }

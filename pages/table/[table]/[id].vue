@@ -1,5 +1,5 @@
 <template lang="pug">
-div
+v-card
   h1 list {{ route.params.table }} {{ route.params.id }}
   v-table
     thead
@@ -8,8 +8,8 @@ div
     tbody
       tr(v-for="record in data.records")
         td(v-for="value in record") {{ value }}
-  </template>
-  <script setup>
-  const route = useRoute()
-  const {data} = useFetch(`/api/table/${route.params.table}/${route.params.id}`)
-  </script>
+</template>
+<script setup>
+const route = useRoute()
+const {data} = useFetch(`/api/table/${route.params.table}/${route.params.id}`)
+</script>

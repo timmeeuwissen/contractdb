@@ -1,5 +1,5 @@
 import mysql from 'mysql2'
-import config from './config.json'
+import config from '../config.json'
 
 let connection;
 export default () => {

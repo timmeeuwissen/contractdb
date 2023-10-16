@@ -1,32 +1,8 @@
-import connection from '~/connection'
+import connection from '~/helpers/connection'
 import config from '~/config.json'
+import { getForTable } from '~/helpers/foreignKeys'
 
 const extractValues = str => [[...str.matchAll(/{{\s?(.+?)\s}}/ig)].map(rec => rec[1])]
-
-const getForeignKeys = async table => {
-  const [foreignKeyRecords] = await connection().promise().query(
-    'select TABLE_NAME, COLUMN_NAME, REFERENCED_TABLE_NAME, REFERENCED_COLUMN_NAME ' +
-    'from information_schema.key_column_usage ' +
-    'where REFERENCED_TABLE_SCHEMA is not null ' +
-    `and (TABLE_NAME = '${table}' or REFERENCED_TABLE_NAME = '${table}')`);
-
-  return foreignKeyRecords.reduce((acc,rec) => {
-    if (rec.TABLE_NAME == table) {
-      acc.references[rec.COLUMN_NAME] = {
-        table: rec.REFERENCED_TABLE_NAME, 
-        column: rec.REFERENCED_COLUMN_NAME
-      }
-    }
-    if (rec.REFERENCED_TABLE_NAME == table) {
-      acc.referencedBy.push({
-        table: rec.TABLE_NAME, 
-        column: rec.COLUMN_NAME
-      })
-    }
-
-    return acc;
-  }, {references: {}, referencedBy: []})
-}
 
 export default defineEventHandler(async event => {
   const tableName = event.context.params.table.replaceAll(/[^a-z]/ig,'');
@@ -38,7 +14,8 @@ export default defineEventHandler(async event => {
     )
 
     return await connection().promise().query(
-      `insert into ${tableName} (${keys.join(', ')}) values ('${Array(values.length).fill('?').join(', ')}')`, 
+      `insert into ${tableName} (${keys.join(', ')}) ` +
+      `values ('${Array(values.length).fill('?').join(', ')}')`, 
       values
     )
   }
@@ -55,8 +32,8 @@ export default defineEventHandler(async event => {
   }
 
   if (event.node.req.method && event.node.req.method == 'GET' && !event.context.params.id) {
-    const foreignKeys = await getForeignKeys(tableName)
-    console.log(foreignKeys);
+    const foreignKeys = await getForTable(tableName)
+
     const joinClauses = Object.entries(foreignKeys.references).reduce(
       (acc, ref, idx) => {
         // add a field which indicates that the left join actually yielded a record
@@ -89,7 +66,12 @@ export default defineEventHandler(async event => {
     const [records, definitions] = await connection().promise().query(
       `select ${queryParts.select} from ${queryParts.from} ${queryParts['join']}`
     )
+
+    const primaryKeys = definitions.reduce(def => {
+      console.log('definition:', def)
+    }, [])
     
-    return {records, definitions, foreignKeys}
+    // todo : obtain primary key field and inject it in the response
+    return {records, definitions, foreignKeys, primaryKeys, tableConfiguration: config[tableName]}
   }
 })

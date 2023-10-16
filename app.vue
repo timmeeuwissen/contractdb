@@ -1,4 +1,6 @@
 <template lang="pug">
-div
-  NuxtPage
+v-app
+  v-container(fill-height)
+    v-row(justify="center")
+      NuxtPage
 </template>
