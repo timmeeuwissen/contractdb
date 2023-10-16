@@ -17,7 +17,7 @@ const amendNoImport = (acc, srcKey, _target, _mapConf) => {
   acc.noImport.push(srcKey)
 }
 
-const amendMapping = (acc, srcKey, target, _mapConf) => {
+const amendMapping = (acc, srcKey, target, mapConf) => {
   acc.mapping.forward[srcKey] = target
   
   if(!(target.database in acc.mapping.reverse)) {
@@ -36,14 +36,31 @@ const amendMapping = (acc, srcKey, target, _mapConf) => {
 }
 
 const amendRelation = (acc, srcKey, target, _mapConf) => {
+  acc.relations.forward[srcKey] = target
 
+  if(!(target.database in acc.relations.reverse)) {
+    acc.relations.reverse[target.database] = {}
+  }
+
+  if(!(target.table in acc.relations.reverse[target.database])) {
+    acc.relations.reverse[target.database][target.table] = {}
+  }
+
+  if(!(target.column in acc.relations.reverse[target.database][target.table])) {
+    acc.relations.reverse[target.database][target.table][target.column] = []
+  }
+
+  acc.relations.reverse[target.database][target.table][target.column].push(srcKey)
 }
 
 const amendMethod = (acc, srcKey, _target, mapConf) => {
-
-
-  
-
+  acc.methods.push(
+    {
+      method: mapConf.method,
+      srcKey,
+      mapConf
+    }
+  )
 }
 
 export default (importerType) => {
@@ -79,7 +96,11 @@ export default (importerType) => {
       }
     }, 
     {
-      methods: {},
+      relations: {
+        forward: {},
+        reverse: {}
+      },
+      methods: [],
       mapping: {
         forward: {},
         reverse: {}

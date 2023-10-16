@@ -38,7 +38,7 @@
         "columns": true
       },
       "modelMap": {
-        "Id": { "method": "split", "args": ",", "target": "contracts.ContractId"},
+        "Id": { "method": "split", "args": {"pattern": ","}, "target": "contracts.ContractId"},
         "xECM code": null,
         "Budget Type": { "target": ["contracts.budgetTypeId", "budgetType.type"]},
         "Active / Inactive": { "target": "contracts.active" },
