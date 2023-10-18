@@ -63,16 +63,16 @@ export default {
     importersStore.fetchImporters()
 
     const importType = ref('')
-    const importFile = ref('')
+    const importFile = ref([])
 
     return { 
       tablesStore, importersStore, 
       importType, importFile
     }
   },
-  data:() => [{
+  data:() => ({
     isImporting: false
-  }],
+  }),
   methods: {
     attemptImport() {
       this.isImporting = true
@@ -87,8 +87,9 @@ export default {
           body: formData,
         }
       ).then((status) => {
-        this.$refs.importForm.trigger('reset')
-        this.isImporting.value = false;
+        console.log('fetch reached an end', status)
+        // this.$refs.importForm.trigger('reset')
+        this.isImporting = false;
       })
     }
   }

@@ -6,7 +6,10 @@ import dbTemplate from '../dbTemplate'
 
 export default (importerType, importerRecords, methods) => {
   methods = methods || {
-    split: (value, args) => String(value).split(args.pattern)
+    split: (value, args) => String(value).split(args.pattern),
+    conditionalRemap: (value, args) => {
+      // todo : write method, requires access to template?
+    }
   }
 
   const template = dbTemplate();
@@ -17,7 +20,8 @@ export default (importerType, importerRecords, methods) => {
   // sets up the template recursively
   const setupTemplate = (tableRef, srcKey) => {
     const { column } = strategy.mapping.forward[srcKey]
-    
+    // console.log(tableRef, srcKey, strategy.mapping.forward[srcKey])
+    // console.log('---------')
     keyToField[srcKey] = tableRef.setField(column)
     
     // in case of a relation
@@ -29,14 +33,17 @@ export default (importerType, importerRecords, methods) => {
         .forEach(srcKey => {
           if (!(srcKey in skipKeys)) {
             skipKeys[srcKey] = true
-            setupTemplate(tableRef, srcKey)
+            setupTemplate(keyToField[srcKey].setReference(fkTable), srcKey)
           }
         })
     }
     // in case of standard direct mapping
     else {
       if (srcKey in strategy.methods) {
-        strategy.methods[srcKey].forEach(method => tableRef.setMethod(method.method, method.mapConf.method.args))
+        strategy.methods[srcKey].forEach(method => {
+          if(!(method.method in methods)) throw new Error(`Method ${method.method} is not an existing method`)
+          keyToField[srcKey].setMethod(methods[method.method], method.mapConf.args)
+        })
       }
     }
   }
@@ -44,7 +51,7 @@ export default (importerType, importerRecords, methods) => {
   strategy.fieldOrder.forEach(srcKey => {
     if (srcKey in skipKeys) return
     const {database, table} = strategy.mapping.forward[srcKey]
-    
+
     setupTemplate(
       template
         .setDatabase(database)
@@ -54,16 +61,14 @@ export default (importerType, importerRecords, methods) => {
   })
 
   const recordCb = (meta, record) => {
-    console.log(`intending to insert into ${meta} with record ${record}`)
+    console.log('intending to insert into', meta, 'with record', record)
   }
 
-  console.log('looping over', importerRecords)
   // iterate over the flat record to apply it to the database
   importerRecords.forEach(srcRecord => {
-    console.log(`Importing record ${srcRecord}`)
     // each relevant sourcefield is mapped to a target field which is 
     // a reference to the layered structure within the dbTemplate
-    Object.entries(keyToField).forEach((srcKey, fieldTarget) => {
+    Object.entries(keyToField).forEach(([srcKey, fieldTarget]) => {
       fieldTarget.applyValue(srcRecord[srcKey])
     })
 

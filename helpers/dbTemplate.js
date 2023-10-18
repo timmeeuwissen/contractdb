@@ -6,12 +6,7 @@ export default () => {
     const expose = {
       ...priorExposures,
       setReference(table) {
-        if (currentValue) throw new Error('cannot set reference if value is already set')
-        currentReference = _tables()
-        currentReference
-          .setTable(table)
-          .newRecord()
-        return currentReference
+        return _tables({}).setTable(table)
       },
       setMethod(method, args) {
         currentMethods.push({method, args})
@@ -20,8 +15,8 @@ export default () => {
       applyValue(value) {
         // flatten the potential values produced by the callbacks
         applied = currentMethods.reduce(
-          (value, {method, args}) => 
-          value.map(method(value, args))
+          (acc, {method, args}) => 
+          acc.map((value) => method(value, args))
             .reduce(
               (acc, value) => 
               [...acc, ...(Array.isArray(value) ? value : [value]) ],
@@ -46,17 +41,13 @@ export default () => {
     const fields = {}
     const expose = {
       ...priorExposures,
-      // newRecord() {
-      //   records.push([])
-      //   return _records(meta, expose)
-      // },
       setField(field) {
         fields[field] = _field({...meta, field}, expose)
         return fields[field]
       },
       applyRecords(recordCb) {
         // obtain the KV pairs
-        const appliedFields = fields.reduce(
+        const appliedFields = Object.values(fields).reduce(
           (acc, field) => {
             const appliedField = field.applyRecords(recordCb)
             if (appliedField) {
@@ -64,10 +55,12 @@ export default () => {
                 if(key in acc) {
                   throw new Error(`Key:${key} was already defined in ${acc}`)
                 }
-                // this is where the model currently breaks, since the callback can return an array
-                // todo: deal with array or object or array of objects feedback from the callbacks
-                // for now, we assume the callbacks won't return objects or arrays
-                acc[key] = value[0]
+                if(value) {
+                  // this is where the model currently breaks, since the callback can return an array
+                  // todo: deal with array or object or array of objects feedback from the callbacks
+                  // for now, we assume the callbacks won't return objects or arrays
+                  acc[key] = value[0]
+                }
               })
             }
 
@@ -80,8 +73,7 @@ export default () => {
         if (Object.keys(appliedFields).length) {
           recordCb(meta, appliedFields)
         } 
-      },
-      traverse: (cb) => records.forEach(record => cb('record', record, fields.forEach(field => field.traverse(cb))))
+      }
     }
     return expose
   }
@@ -96,8 +88,7 @@ export default () => {
       },
       applyRecords(recordCb) {
         Object.values(tables).forEach(table => table.applyRecords(recordCb))
-      },
-      traverse: (cb) => Object.entries(tables).forEach((table, records) => cb('table', table, records.traverse(cb)))
+      }
     }
     return expose
   }
