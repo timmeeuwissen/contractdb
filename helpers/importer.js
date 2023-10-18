@@ -1,7 +1,9 @@
 import { parse } from 'csv-parse'
 import config from '~/config.json'
+import process from './importer/process'
 
 export default (importType, fileDef) => {
+  console.log('starting to import ', importType)
   if (!(importType in config.imports)) throw new Error(`unknown importType ${importType}`)
   if (!config.imports[importType].type == 'text/csv') throw new Error('Currently only supporting text/csv')
   
@@ -9,7 +11,7 @@ export default (importType, fileDef) => {
 
   const records = [];
   const parser = parse(importConfig.parserConfig);
-
+  
   parser.on('readable', function(){
     let record;
     while ((record = parser.read()) !== null) {
@@ -22,7 +24,7 @@ export default (importType, fileDef) => {
   });
 
   parser.on('end', function(){
-    console.log(records.shift(), records.shift(), records.shift())
+    process(importType, records)
   });
 
   parser.write(fileDef.data)
