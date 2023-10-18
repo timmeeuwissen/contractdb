@@ -30,10 +30,13 @@ export default (importerType, importerRecords, methods) => {
       const {database: fkDatabase, table: fkTable, column: fkColumn} = strategy.relations.forward[srcKey]
 
       strategy.relations.reverse[fkDatabase][fkTable][fkColumn]
-        .forEach(srcKey => {
-          if (!(srcKey in skipKeys)) {
-            skipKeys[srcKey] = true
-            setupTemplate(keyToField[srcKey].setReference(fkTable), srcKey)
+        .forEach(trgKey => {
+          if (!(trgKey in skipKeys)) {
+            skipKeys[trgKey] = true
+            setupTemplate(keyToField[srcKey].setReference({
+              database: strategy.mapping.forward[trgKey].database, 
+              table: strategy.mapping.forward[trgKey].table, 
+            }), trgKey)
           }
         })
     }

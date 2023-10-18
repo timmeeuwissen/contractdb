@@ -5,8 +5,9 @@ export default () => {
 
     const expose = {
       ...priorExposures,
-      setReference(table) {
-        return _tables({}).setTable(table)
+      setReference(refMeta) {
+        currentReference = _tables(refMeta).setTable(refMeta.table)
+        return currentReference
       },
       setMethod(method, args) {
         currentMethods.push({method, args})
@@ -26,7 +27,7 @@ export default () => {
       },
       applyRecords(recordCb) {
         if(currentReference) {
-          applyValue(currentReference.applyRecords(recordCb))
+          applied = expose.applyValue(currentReference.applyRecords(recordCb))
         }
         return {[meta.field]: applied}
       },
@@ -55,7 +56,7 @@ export default () => {
                 if(key in acc) {
                   throw new Error(`Key:${key} was already defined in ${acc}`)
                 }
-                if(value) {
+                if(value && value.length && (value[0]!==undefined)) {
                   // this is where the model currently breaks, since the callback can return an array
                   // todo: deal with array or object or array of objects feedback from the callbacks
                   // for now, we assume the callbacks won't return objects or arrays
