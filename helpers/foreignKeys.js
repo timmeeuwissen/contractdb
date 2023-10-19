@@ -1,6 +1,32 @@
 import connection from '~/helpers/connection'
 
-export const getAll = async () => {
+const systemTables = ['mysql', 'performance_schema', 'sys']
+
+
+
+export const getAllPrimaryKeys = async () => {
+  const [primaryKeyRecords] = await connection().promise().query(
+    `select ` +
+    `    TABLE_SCHEMA as 'database', ` +
+    `    TABLE_NAME as 'table', ` +
+    `    COLUMN_NAME as 'column' ` +
+    `from information_schema.key_column_usage ` +
+    `where CONSTRAINT_NAME = 'PRIMARY' ` +
+    `and TABLE_SCHEMA not in (${systemTables.map(key => `'${key}'`).join(',')})`
+  )
+
+  return primaryKeyRecords.reduce((acc, {database, table, column}) => {
+    if(!(database in acc)) {
+      acc[database] = {}
+    }
+    if(!(table in acc[database])) {
+      acc[database][table] = column
+    }
+    return acc
+  }, {})
+}
+
+export const getAllConstraints = async () => {
   const [foreignKeyRecords] = await connection().promise().query(
     'select TABLE_NAME, COLUMN_NAME, REFERENCED_TABLE_NAME, REFERENCED_COLUMN_NAME ' +
     'from information_schema.key_column_usage ' +
@@ -44,12 +70,12 @@ export const getAll = async () => {
   }, {})
 }
 
-export const getAllByOrder = async () => {
+export const getTablesByConstrainingOrder = async () => {
   const [tableRecords] = await connection().promise().query('show tables');
   tableRecords.reduce((acc,entity) => [...acc, {tableName: Object.values(entity)[0]}],[])
   
   // first figure out the tables that demand ordering
-  const allRelations = await getAll();
+  const allRelations = await getAllConstraints();
   const lookup = {}, order = [];
   let maxIt = 500
   while (Object.length(allRelations) && maxIt--) {
@@ -75,7 +101,7 @@ export const getAllByOrder = async () => {
   return order
 }
 
-export const getForTable = async table => {
+export const getConstraintsForTable = async table => {
   const [foreignKeyRecords] = await connection().promise().query(
     'select TABLE_NAME, COLUMN_NAME, REFERENCED_TABLE_NAME, REFERENCED_COLUMN_NAME ' +
     'from information_schema.key_column_usage ' +

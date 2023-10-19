@@ -38,12 +38,35 @@
         "columns": true
       },
       "modelMap": {
-        "Id": { "method": "split", "args": {"pattern": ","}, "target": "contracts.ContractId"},
+        "Id": { 
+          "method": "split", 
+          "args": {"pattern": ","}, 
+          "target": "contracts.ContractId"
+        },
         "xECM code": null,
-        "Budget Type": { "target": ["contracts.budgetTypeId", "budgetType.type"]},
-        "Active / Inactive": { "target": "contracts.active" },
-        "Vendor Entity Name": { "target": ["contracts.vendorId", "vendors.name"] },
-        "Underlying vendor": { "method": "conditionalRemap", "args": {"condition": "exists", "targets": ["Vendor Entity Name"]}, "target": "vendors.name" },
+        "Budget Type": { 
+          "target": ["contracts.budgetTypeId", "budgetType.type"]
+        },
+        "Active / Inactive": { 
+          "target": "contracts.active", 
+          "method": "boolRemap", 
+          "args": {
+            "default": false, 
+            "valuesToTrue": ["Active"], 
+            "valuesToFalse": ["Inactive"]
+          } 
+        },
+        "Vendor Entity Name": { 
+          "target": ["contracts.vendorId", "vendors.name"] 
+        },
+        "Underlying vendor": { 
+          "method": "conditionalRemap", 
+          "args": {
+            "condition": "exists", 
+            "targets": ["Vendor Entity Name"]
+          }, 
+          "target": "vendors.name" 
+        },
         "Ariba / \n Readsoft": null,
         "Ariba PR/PO": null,
         "Date Next PO available": null,

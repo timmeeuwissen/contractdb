@@ -1,16 +1,25 @@
 import config from '~/config.json'
 import strategize from './strategize'
 import dbTemplate from '../dbTemplate'
+import connection from '../connection'
 
 // preprocess returns a filled recordConstructor 
 
-export default (importerType, importerRecords, methods) => {
-  methods = methods || {
-    split: (value, args) => String(value).split(args.pattern),
-    conditionalRemap: (value, args) => {
-      // todo : write method, requires access to template?
-    }
+const defaultMethods = {
+  split: (value, args) => String(value).split(args.pattern),
+  conditionalRemap: (value, args) => {
+    // todo : write method, requires access to template?
+  },
+  boolRemap: (value, args) => {
+    if('valuesToTrue' in args && value in args.valuesToTrue) return true
+    if('valuesToFalse' in args && value in args.valuesToTrue) return false
+    if('default' in args) return args.default
+    return null
   }
+}
+
+export default (importerType, importerRecords, methods) => {
+  methods = methods || defaultMethods
 
   const template = dbTemplate();
   const strategy = strategize(importerType);
@@ -63,12 +72,24 @@ export default (importerType, importerRecords, methods) => {
     )
   })
 
-  const recordCb = (meta, record) => {
-    console.log('intending to insert into', meta, 'with record', record)
+  const recordCb = async (meta, record) => {
+    const keys = Object.keys(record), values = Object.values(record)
+    
+    const query = `insert into ${meta.database}.${meta.table} (${keys.join(',')}) `+
+      `values(${Array(keys.length).fill('?').join(',')}) ` +
+      `on duplicate key update ` +
+      keys.reduce((acc, key) => ([...acc, `${key} = values(${key})`]), []).join(', ')
+    const result = await connection().promise().query(query, values)
+    console.log(`InsertID was ${result[0].insertId}`, result, query, values)
+    return result[0].insertId
   }
+
+  console.log('starting import')
+  connection().beginTransaction()
 
   // iterate over the flat record to apply it to the database
   importerRecords.forEach(srcRecord => {
+    
     // each relevant sourcefield is mapped to a target field which is 
     // a reference to the layered structure within the dbTemplate
     Object.entries(keyToField).forEach(([srcKey, fieldTarget]) => {
@@ -79,5 +100,8 @@ export default (importerType, importerRecords, methods) => {
     // use the callback to resolve what to do with the records.
     template.applyRecords(recordCb)
   })
+  console.log('rolling back')
+  connection.rollback()
+  console.log('import finished')
 
 }

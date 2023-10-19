@@ -1,6 +1,6 @@
 import connection from '~/helpers/connection'
 import config from '~/config.json'
-import { getForTable } from '~/helpers/foreignKeys'
+import { getConstraintsForTable } from '~/helpers/foreignKeys'
 
 const extractValues = str => [[...str.matchAll(/{{\s?(.+?)\s}}/ig)].map(rec => rec[1])]
 
@@ -32,7 +32,7 @@ export default defineEventHandler(async event => {
   }
 
   if (event.node.req.method && event.node.req.method == 'GET' && !event.context.params.id) {
-    const foreignKeys = await getForTable(tableName)
+    const foreignKeys = await getConstraintsForTable(tableName)
 
     const joinClauses = Object.entries(foreignKeys.references).reduce(
       (acc, ref, idx) => {

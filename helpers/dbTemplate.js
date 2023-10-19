@@ -25,9 +25,13 @@ export default () => {
             )
           , [value])
       },
-      applyRecords(recordCb) {
+      async applyRecords(recordCb) {
         if(currentReference) {
-          applied = expose.applyValue(currentReference.applyRecords(recordCb))
+          console.log('we seem to have a reference')
+          const intermediary = await currentReference.applyRecords(recordCb)
+          console.log ('intermediary value is', intermediary)
+          expose.applyValue(intermediary)
+          console.log('and its applied value is ', applied)
         }
         return {[meta.field]: applied}
       },
@@ -46,13 +50,14 @@ export default () => {
         fields[field] = _field({...meta, field}, expose)
         return fields[field]
       },
-      applyRecords(recordCb) {
+      async applyRecords(recordCb) {
         // obtain the KV pairs
-        const appliedFields = Object.values(fields).reduce(
-          (acc, field) => {
-            const appliedField = field.applyRecords(recordCb)
+        const appliedFields = await Object.values(fields).reduce(
+          async (acc, field) => {
+            const appliedField = await field.applyRecords(recordCb)
+            acc = (await acc)
             if (appliedField) {
-              Object.entries(appliedField).forEach(([key, value]) => {
+              Object.entries(appliedField).forEach(async ([key, value]) => {
                 if(key in acc) {
                   throw new Error(`Key:${key} was already defined in ${acc}`)
                 }
@@ -64,7 +69,6 @@ export default () => {
                 }
               })
             }
-
             // reset the field to its initial state
             field.reset()
 
@@ -72,7 +76,7 @@ export default () => {
           }, {})
 
         if (Object.keys(appliedFields).length) {
-          recordCb(meta, appliedFields)
+          return await recordCb(meta, appliedFields)
         } 
       }
     }
@@ -87,7 +91,7 @@ export default () => {
         if (!(table in tables)) tables[table] = _records({...meta ,table}, expose)
         return tables[table]
       },
-      applyRecords(recordCb) {
+      async applyRecords(recordCb) {
         Object.values(tables).forEach(table => table.applyRecords(recordCb))
       }
     }
@@ -102,10 +106,11 @@ export default () => {
         databases[database] = _tables({database}, expose)
         return databases[database]
       },
-      applyRecords(recordCb) {
+      async applyRecords(recordCb) {
         Object.values(databases).forEach(tables => {
           tables.applyRecords(recordCb)
         })
+        return expose
       },
     }
     return expose
