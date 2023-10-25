@@ -1,3 +1,5 @@
+import vuetify, { transformAssetUrls } from 'vite-plugin-vuetify'
+
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
   devtools: {
@@ -15,10 +17,21 @@ export default defineNuxtConfig({
   build: {
     transpile: ['vuetify'],
   },
-  modules: ['@pinia/nuxt', '@nuxtjs/device'],
-  // vite: {
-  //   define: {
-  //     'process.env.DEBUG': false,
-  //   },
-  // },
+  modules: [
+    '@pinia/nuxt', 
+    '@nuxtjs/device',
+    (_options, nuxt) => {
+      nuxt.hooks.hook('vite:extendConfig', (config) => {
+        // @ts-expect-error
+        config.plugins.push(vuetify({ autoImport: true }))
+      })
+    },
+  ],
+  vite: {
+    vue: {
+      template: {
+        transformAssetUrls,
+      },
+    },
+  },
 })

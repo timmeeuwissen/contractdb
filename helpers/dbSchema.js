@@ -2,8 +2,6 @@ import connection from '~/helpers/connection'
 
 const systemTables = ['mysql', 'performance_schema', 'sys']
 
-
-
 export const getAllPrimaryKeys = async () => {
   const [primaryKeyRecords] = await connection().promise().query(
     `select ` +
@@ -24,7 +22,7 @@ export const getAllPrimaryKeys = async () => {
     }
     return acc
   }, {})
-}
+} 
 
 export const getAllConstraints = async () => {
   const [foreignKeyRecords] = await connection().promise().query(

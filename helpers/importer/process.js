@@ -2,6 +2,7 @@ import config from '~/config.json'
 import strategize from './strategize'
 import dbTemplate from '../dbTemplate'
 import connection from '../connection'
+import { getAllPrimaryKeys } from '../dbSchema'
 
 // preprocess returns a filled recordConstructor 
 
@@ -18,13 +19,13 @@ const defaultMethods = {
   }
 }
 
-export default (importerType, importerRecords, methods) => {
+export const getTemplate = (importerType, methods) => {
   methods = methods || defaultMethods
 
-  const template = dbTemplate();
-  const strategy = strategize(importerType);
   const skipKeys = {}
   const keyToField = {}
+  const template = dbTemplate()
+  const strategy = strategize(importerType)
 
   // sets up the template recursively
   const setupTemplate = (tableRef, srcKey) => {
@@ -72,20 +73,43 @@ export default (importerType, importerRecords, methods) => {
     )
   })
 
+  return template
+}
+
+export const execute = async (importerType, importerRecords, methods) => {
+  const primaryKeys = await getAllPrimaryKeys()
+  const template = getTemplate(importerType, methods)
+
   const recordCb = async (meta, record) => {
     const keys = Object.keys(record), values = Object.values(record)
-    
+    const priKey = primaryKeys[meta.database][meta.table]
+
+    if (!priKey) {
+      throw new Error('Could not determine primary key for', meta)
+    }
+
+    const updateInsertId = priKey in record 
+      ? ''
+      : `${priKey} = LAST_INSERT_ID(${priKey}), `
+
     const query = `insert into ${meta.database}.${meta.table} (${keys.join(',')}) `+
       `values(${Array(keys.length).fill('?').join(',')}) ` +
       `on duplicate key update ` +
+      updateInsertId +
       keys.reduce((acc, key) => ([...acc, `${key} = values(${key})`]), []).join(', ')
+    
+    console.log(query)
     const result = await connection().promise().query(query, values)
-    console.log(`InsertID was ${result[0].insertId}`, result, query, values)
-    return result[0].insertId
+
+    const insertId = result[0].insertId || record[priKey]
+    // console.log(`InsertID was ${insertId}`, result, query, values)
+    return insertId
   }
 
   console.log('starting import')
   connection().beginTransaction()
+
+  const allRecords = []
 
   // iterate over the flat record to apply it to the database
   importerRecords.forEach(srcRecord => {
@@ -93,15 +117,24 @@ export default (importerType, importerRecords, methods) => {
     // each relevant sourcefield is mapped to a target field which is 
     // a reference to the layered structure within the dbTemplate
     Object.entries(keyToField).forEach(([srcKey, fieldTarget]) => {
-      fieldTarget.applyValue(srcRecord[srcKey])
+      allRecords.push(fieldTarget.applyValue(srcRecord[srcKey]))
     })
 
     // trancerse the entire model, including foreign key constraints, and 
     // use the callback to resolve what to do with the records.
     template.applyRecords(recordCb)
   })
-  console.log('rolling back')
-  connection.rollback()
+
+  Promise.all(allRecords)
+    .then(_values => {
+      console.log('committing input')
+      connection().commit()
+    })
+    .catch(error => {
+      console.log('rolling back')
+      connection().rollback()
+      throw error
+    })
   console.log('import finished')
 
 }

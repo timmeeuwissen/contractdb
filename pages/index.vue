@@ -42,12 +42,16 @@ v-col(cols="auto" v-if="Object.keys(importersStore.importers).length")
           label="File"
         )
         v-card-actions
-          v-btn.mt-4(
+          v-btn(
             :disabled="!importType.value || !importFile"
             color="success"
-            block
             @click="attemptImport"
           ) Attempt to import
+          v-btn(
+            :disabled="!importType.value"
+            color="success"
+            :to="`/import/tree/${importType.value}`"
+          ) Show import tree
 </template>
 <script>
 import { useTablesStore } from '~/stores/tables'
@@ -81,7 +85,7 @@ export default {
       formData.append('importFile', this.importFile[0])
 
       $fetch(
-        `/api/import/${this.importType.value}`, 
+        `/api/import/process/${this.importType.value}`, 
         { 
           method: 'POST',
           body: formData,

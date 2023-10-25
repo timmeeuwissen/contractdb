@@ -27,16 +27,21 @@ export default () => {
       },
       async applyRecords(recordCb) {
         if(currentReference) {
-          console.log('we seem to have a reference')
           const intermediary = await currentReference.applyRecords(recordCb)
-          console.log ('intermediary value is', intermediary)
           expose.applyValue(intermediary)
-          console.log('and its applied value is ', applied)
         }
         return {[meta.field]: applied}
       },
       reset() {
         applied = undefined
+      },
+      getTree() {
+        if (currentReference) {
+          return { children: currentReference(getTree) }
+        }
+        else {
+          return { meta, methods: currentMethods }
+        }
       }
     }
     return expose
@@ -78,7 +83,17 @@ export default () => {
         if (Object.keys(appliedFields).length) {
           return await recordCb(meta, appliedFields)
         } 
+      },
+      getTree(){
+        return Object.entries(fields).reduce((acc, [key, fieldDetails]) => ([
+            ...acc,
+            {
+              type: 'field',
+              title: key,
+            }
+          ]), [])        
       }
+      
     }
     return expose
   }
@@ -93,6 +108,16 @@ export default () => {
       },
       async applyRecords(recordCb) {
         Object.values(tables).forEach(table => table.applyRecords(recordCb))
+      },
+      getTree(){
+        return Object.entries(tables).reduce((acc, [table, records]) => ([
+            ...acc,
+            {
+              type: 'table',
+              title: table,
+              children: records.getTree()
+            }
+          ]), [])        
       }
     }
     return expose
@@ -112,6 +137,16 @@ export default () => {
         })
         return expose
       },
+      getTree(){
+        return Object.entries(databases).reduce((acc, [database, tables]) => ([
+            ...acc,
+            {
+              type: 'database',
+              title: database,
+              children: tables.getTree()
+            }
+          ]), [])        
+      }
     }
     return expose
   }

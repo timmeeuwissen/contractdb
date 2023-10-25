@@ -1,8 +1,7 @@
 import connection from '~/helpers/connection'
 import config from '~/config.json'
-import { getConstraintsForTable } from '~/helpers/foreignKeys'
-
-const extractValues = str => [[...str.matchAll(/{{\s?(.+?)\s}}/ig)].map(rec => rec[1])]
+import { getConstraintsForTable } from '~/helpers/dbSchema'
+import { get_variables } from '~/helpers/indentify';
 
 export default defineEventHandler(async event => {
   const tableName = event.context.params.table.replaceAll(/[^a-z]/ig,'');
@@ -28,6 +27,7 @@ export default defineEventHandler(async event => {
       `select * from ${tableName} where ${tableDefRec.records[0].Field} = ?`, 
       [event.query.id]
     );
+
     return {records, definitions}
   }
 
@@ -40,11 +40,9 @@ export default defineEventHandler(async event => {
         acc.select.push(`if(${ref[1].table}_${idx}.${ref[1].column} is not null, 1, 0) as _${ref[0]}_exists`)
 
         // add the fields that are used in the identifiedBy config field to the query response
-        if (config.tableConfiguration[ref[1].table].identifiedBy) {
-          extractValues(config.tableConfiguration[ref[1].table].identifiedBy).forEach(field => {
-            acc.select.push(`${ref[1].table}_${idx}.${field} as _${ref[0]}_iBy_${field}`)
-          });
-        } 
+        get_variables(ref[1].table).forEach(field => {
+          acc.select.push(`${ref[1].table}_${idx}.${field} as _${ref[0]}_iBy_${field}`)
+        });
 
         // join the table
         acc.join.push(
@@ -72,6 +70,7 @@ export default defineEventHandler(async event => {
     }, [])
     
     // todo : obtain primary key field and inject it in the response
+    console.log({records, definitions, foreignKeys, primaryKeys, tableConfiguration: config[tableName]})
     return {records, definitions, foreignKeys, primaryKeys, tableConfiguration: config[tableName]}
   }
 })

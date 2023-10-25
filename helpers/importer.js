@@ -1,6 +1,6 @@
 import { parse } from 'csv-parse'
 import config from '~/config.json'
-import process from './importer/process'
+import { execute } from './importer/process'
 
 export default (importType, fileDef) => {
   console.log('starting to import ', importType)
@@ -24,7 +24,7 @@ export default (importType, fileDef) => {
   });
 
   parser.on('end', function(){
-    process(importType, records)
+    execute(importType, records)
   });
 
   parser.write(fileDef.data)

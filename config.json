@@ -70,7 +70,9 @@
         "Ariba / \n Readsoft": null,
         "Ariba PR/PO": null,
         "Date Next PO available": null,
-        "Domain":{"target": ["contracts.domainId","domains.domain"]} ,
+        "Domain": {
+          "target": ["contracts.domainId","domains.domain"]
+        } ,
         "ITVM Category": null,
         "ITVM Sub Category": null,
         "Contract Scope": null,
