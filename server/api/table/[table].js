@@ -1,7 +1,8 @@
 import connection from '~/helpers/connection'
 import config from '~/config.json'
-import { getConstraintsForTable } from '~/helpers/dbSchema'
-import { get_variables } from '~/helpers/indentify';
+import { getAllPrimaryKeys, getConstraintsForTable } from '~/helpers/dbSchema'
+import { get_variables } from '~/helpers/identify';
+import { getType } from '~/helpers/dbSchema';
 
 export default defineEventHandler(async event => {
   const tableName = event.context.params.table.replaceAll(/[^a-z]/ig,'');
@@ -55,8 +56,14 @@ export default defineEventHandler(async event => {
       {select: [], join: []}
     )
 
+    const primaryKeys = await getAllPrimaryKeys()
+
     const queryParts = {
-      select: [`${tableName}.*`, ...joinClauses.select].join(', '),
+      select: [
+        `${tableName}.*`, 
+        `${tableName}.${primaryKeys[config.connection.database][tableName]} as _PK`,
+        ...joinClauses.select
+      ].join(', '),
       from: tableName,
       join: joinClauses['join'].join(' ')
     }
@@ -65,12 +72,38 @@ export default defineEventHandler(async event => {
       `select ${queryParts.select} from ${queryParts.from} ${queryParts['join']}`
     )
 
-    const primaryKeys = definitions.reduce(def => {
-      console.log('definition:', def)
-    }, [])
-    
-    // todo : obtain primary key field and inject it in the response
-    console.log({records, definitions, foreignKeys, primaryKeys, tableConfiguration: config[tableName]})
-    return {records, definitions, foreignKeys, primaryKeys, tableConfiguration: config[tableName]}
+    const requestURL = getRequestURL(event)
+
+    if (requestURL.searchParams.get('format') == 'ui') {
+      const headers = [
+        ...(definitions
+          .filter(def => !def.name.match(/^_/))
+          .reduce((acc, def) => ([
+            ...acc, { 
+              title: def.name, // todo: i18n mapping
+              key: def.name,
+              align: getType(def.type).match(/INT|LONG|DECIMAL|FLOAT/) && !(def.name in foreignKeys.references) 
+                ? 'end' 
+                : 'begin',
+              visualAid: (() => {
+                if (def.name in foreignKeys.references) {
+                  return 'relation'
+                }
+              })()
+            }
+          ]), [])),
+          { title: 'Actions', key: 'actions', align: 'end', sortable: false }
+      ]
+
+      return {
+        headers, 
+        records,
+        tableConfiguration: config[tableName],
+        foreignKeys,
+      }
+    }
+    else {
+      return {records, definitions, foreignKeys, primaryKeys, tableConfiguration: config[tableName]}
+    }
   }
 })

@@ -1,6 +1,14 @@
 import connection from '~/helpers/connection'
+import mysql from 'mysql2'
 
 const systemTables = ['mysql', 'performance_schema', 'sys']
+let typemap;
+
+export const getType = intType => {
+  if (!typemap) typemap = Object.entries(mysql.Types).reduce((acc,[k,v]) => ({...acc, [String(v)]: k}),{})
+  if (!(String(intType) in typemap)) throw new Error('unknown type')
+  return typemap[String(intType)]
+}
 
 export const getAllPrimaryKeys = async () => {
   const [primaryKeyRecords] = await connection().promise().query(
