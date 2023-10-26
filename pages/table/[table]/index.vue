@@ -27,14 +27,18 @@ v-card
       v-for="def in data.headers"
       #[`item.${def.key}`]="{ item }"
     ) 
+      //- the last column where the buttons are
       template(
         v-if="def.key == 'actions'"
       )
         v-btn(icon="mdi-text-box-edit-outline" density="compact" :to="`/table/${route.params.table}/${item.raw._PK}`") 
         v-btn(icon="mdi-delete-outline" density="compact" @click="deleteItem(item)")
+      
+      //- a column which refers to an external record
       template(
         v-else-if="def.visualAid == 'relation'"
       )
+        //- when there's a foreign key attached, we show the relevant information here
         template(v-if="item.raw[`_${def.key}_exists`]")
           //- todo : should be handled by helper function, but requires DB connection to resolve
           //-        the unique columns
