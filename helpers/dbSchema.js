@@ -1,8 +1,22 @@
 import connection from '~/helpers/connection'
 import mysql from 'mysql2'
+import config from '~/config.json'
 
 const systemTables = ['mysql', 'performance_schema', 'sys']
 let typemap;
+
+export const deconstructTarget = (targetString) => {
+  // make sure we know the database, table and column
+  let location = targetString.split('.')
+
+  while(location.length < 3) {
+    location = [null, ...location];
+  }
+
+  const [database, table, column] = location;
+  return {database: database || config.connection.database, table, column}
+}
+
 
 export const getType = intType => {
   if (!typemap) typemap = Object.entries(mysql.Types).reduce((acc,[k,v]) => ({...acc, [String(v)]: k}),{})

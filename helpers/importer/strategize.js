@@ -1,19 +1,7 @@
 import config from '~/config.json'
-
+import { deconstructTarget } from '../dbSchema'
 // strategize groups actions in a certain way so that they can be traversed 
 // more easily
-
-const deconstructTarget = (targetString) => {
-  // make sure we know the database, table and column
-  let location = targetString.split('.')
-
-  while(location.length < 3) {
-    location = [null, ...location];
-  }
-
-  const [database, table, column] = location;
-  return {database: database || config.connection.database, table, column}
-}
 
 const amendNoImport = (acc, srcKey, _target, _mapConf) => {
   acc.noImport[srcKey] = true
@@ -131,8 +119,8 @@ export default (importerType) => {
   return {
     ...response, 
     fieldOrder: [
+      ...Object.keys(response.doImport).filter(key => !(key in response.relations.forward)),
       ...Object.keys(response.relations.forward),
-      ...Object.keys(response.doImport).reduce((acc, key) => key in response.relations.forward ? acc : [...acc, key], [])
     ]
   }
 }

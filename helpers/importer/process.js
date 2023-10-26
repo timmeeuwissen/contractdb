@@ -2,7 +2,7 @@ import config from '~/config.json'
 import strategize from './strategize'
 import dbTemplate from '../dbTemplate'
 import connection from '../connection'
-import { getAllPrimaryKeys } from '../dbSchema'
+import { deconstructTarget, getAllPrimaryKeys } from '../dbSchema'
 
 // preprocess returns a filled recordConstructor 
 
@@ -33,12 +33,12 @@ export const getTemplate = (importerType, methods) => {
     // console.log(tableRef, srcKey, strategy.mapping.forward[srcKey])
     // console.log('---------')
     keyToField[srcKey] = tableRef.setField(column)
-    
+    console.log('setting field', srcKey, column)
     // in case of a relation
     if(srcKey in strategy.relations.forward) {
       // multiple columns bind to the fields of that target table for that relation
       const {database: fkDatabase, table: fkTable, column: fkColumn} = strategy.relations.forward[srcKey]
-
+      console.log(fkDatabase, fkTable, fkColumn, strategy.relations.reverse[fkDatabase][fkTable][fkColumn])
       strategy.relations.reverse[fkDatabase][fkTable][fkColumn]
         .forEach(trgKey => {
           if (!(trgKey in skipKeys)) {
@@ -63,12 +63,20 @@ export const getTemplate = (importerType, methods) => {
 
   strategy.fieldOrder.forEach(srcKey => {
     if (srcKey in skipKeys) return
-    const {database, table} = strategy.mapping.forward[srcKey]
-
+    const {database, table, mapConf} = strategy.mapping.forward[srcKey]
+    // todo: Dit gaat niet goed. Zo komen de relaties niet goed door in de template
+console.log('forwardRelation: ',srcKey, strategy.relations.forward[srcKey])
     setupTemplate(
-      template
-        .setDatabase(database)
-        .setTable(table),
+      ( (mapConf?.target && Array.isArray(mapConf.target) && mapConf.target.length == 2) 
+        ? template
+            .find((() => { 
+              const {field: omitted, ...rest} = deconstructTarget(mapConf.target[0])
+              return rest
+            })())
+        : template
+            .setDatabase(database)
+            .setTable(table)
+      ),
       srcKey
     )
   })
@@ -98,7 +106,6 @@ export const execute = async (importerType, importerRecords, methods) => {
       updateInsertId +
       keys.reduce((acc, key) => ([...acc, `${key} = values(${key})`]), []).join(', ')
     
-    console.log(query)
     const result = await connection().promise().query(query, values)
 
     const insertId = result[0].insertId || record[priKey]

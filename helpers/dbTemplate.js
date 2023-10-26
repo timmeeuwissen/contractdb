@@ -6,6 +6,7 @@ export default () => {
     const expose = {
       ...priorExposures,
       setReference(refMeta) {
+        if(currentReference) return currentReference
         currentReference = _tables(refMeta).setTable(refMeta.table)
         return currentReference
       },
@@ -90,10 +91,19 @@ export default () => {
             {
               type: 'field',
               title: key,
+              meta: fieldDetails,
             }
           ]), [])        
-      }
-      
+      },
+      find(metaSearch) {
+        if('field' in metaSearch) {
+          if(metaSearch.field in fields) {
+            return (fields[metaSearch.field]).find(metaSearch) || expose
+          }
+          throw new Error(`Table ${metaSearch.field} was not yet defined in the template for table ${metaSearch.table} and database ${metaSearch.database}`)
+        }
+        return expose
+      }      
     }
     return expose
   }
@@ -115,9 +125,19 @@ export default () => {
             {
               type: 'table',
               title: table,
+              meta: {},
               children: records.getTree()
             }
           ]), [])        
+      },
+      find(metaSearch) {
+        if('table' in metaSearch) {
+          if(metaSearch.table in tables) {
+            return (tables[metaSearch.table]).find(metaSearch) || expose
+          }
+          throw new Error(`Table ${metaSearch.table} was not yet defined in the template for database ${metaSearch.database}`)
+        }
+        return expose
       }
     }
     return expose
@@ -143,9 +163,19 @@ export default () => {
             {
               type: 'database',
               title: database,
+              meta: {},
               children: tables.getTree()
             }
           ]), [])        
+      },
+      find(metaSearch) {
+        if('database' in metaSearch) {
+          if(metaSearch.database in databases) {
+            return (databases[metaSearch.database]).find(metaSearch) || expose
+          }
+          throw new Error(`Database ${metaSearch.database} was not yet defined in the template`)
+        }
+        throw new Error(`Database not defined in ${metaSearch}`)
       }
     }
     return expose
