@@ -1,7 +1,24 @@
 <template lang="pug">
 v-card
+  v-card-title Importer configuration
+  v-card-text
+    pre {{ data.importerConfig }}
+v-card
+  v-card-title Mapping to table
+  v-card-text
+    v-table
+      thead
+        tr
+          th Source Field 
+          th Target Column
+      tbody
+        tr(v-for="[key, target] in Object.entries(data.keysToField)")
+          td {{ key }}
+          td {{ target.join('.') }}
+v-card
+  v-card-title Mapping to database (relational)
   tree(
-    :tree-data="treeData",
+    :tree-data="data.tree",
     :icon-map="iconMap"
     v-on:info-request="showInfo"
   )
@@ -28,7 +45,7 @@ import { reactive } from 'vue'
 
 const infoData = reactive({})
 
-const {data: treeData} = await useFetch(`/api/import/meta/${route.params.importType}`)
+const {data} = await useFetch(`/api/import/meta/${route.params.importType}`)
 const iconMap = {
   database: 'mdi-database-outline',
   table: 'mdi-table',

@@ -4,6 +4,7 @@ import config from '~/config.json'
 
 const systemTables = ['mysql', 'performance_schema', 'sys']
 let typemap;
+let uniques;
 
 export const deconstructTarget = (targetString) => {
   // make sure we know the database, table and column
@@ -144,4 +145,41 @@ export const getConstraintsForTable = async table => {
 
     return acc;
   }, {references: {}, referencedBy: []})
+}
+
+export const getUniques = async (database, table) => {
+  uniques = (await connection().promise().query(
+      `select ` +
+      `  information_schema.TABLE_CONSTRAINTS.CONSTRAINT_SCHEMA, ` +
+      `  information_schema.TABLE_CONSTRAINTS.CONSTRAINT_NAME, ` +
+      `  information_schema.TABLE_CONSTRAINTS.TABLE_NAME, ` +
+      `  information_schema.KEY_COLUMN_USAGE.COLUMN_NAME ` +
+
+      `from information_schema.TABLE_CONSTRAINTS ` +
+
+      `inner join information_schema.KEY_COLUMN_USAGE ` +
+      `on information_schema.KEY_COLUMN_USAGE.CONSTRAINT_SCHEMA = information_schema.TABLE_CONSTRAINTS.CONSTRAINT_SCHEMA ` +
+      `and information_schema.KEY_COLUMN_USAGE.CONSTRAINT_NAME = information_schema.TABLE_CONSTRAINTS.CONSTRAINT_NAME ` +
+      `and information_schema.KEY_COLUMN_USAGE.TABLE_NAME = information_schema.TABLE_CONSTRAINTS.TABLE_NAME ` +
+
+      `where information_schema.TABLE_CONSTRAINTS.CONSTRAINT_SCHEMA not in ('mysql', 'performance_schema', 'sys') ` +
+      `and information_schema.TABLE_CONSTRAINTS.CONSTRAINT_TYPE in ('UNIQUE', 'PRIMARY KEY') `
+    ))[0].reduce((acc, rec) => {
+    
+      if (!(rec.CONSTRAINT_SCHEMA in acc)) {
+        acc[rec.CONSTRAINT_SCHEMA] = {}
+      }
+      if (!(rec.TABLE_NAME in acc[rec.CONSTRAINT_SCHEMA])) {
+        acc[rec.CONSTRAINT_SCHEMA][rec.TABLE_NAME] = {}
+      }
+      if (!(rec.CONSTRAINT_NAME in acc[rec.CONSTRAINT_SCHEMA][rec.TABLE_NAME])) {
+        acc[rec.CONSTRAINT_SCHEMA][rec.TABLE_NAME][rec.CONSTRAINT_NAME] = []
+      }
+
+      acc[rec.CONSTRAINT_SCHEMA][rec.TABLE_NAME][rec.CONSTRAINT_NAME].push(rec.COLUMN_NAME)
+
+      return acc
+    },{})
+
+  return uniques[database][table]
 }

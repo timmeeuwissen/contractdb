@@ -1,7 +1,7 @@
 import connection from '~/helpers/connection'
 import config from '~/config.json'
 import { getAllPrimaryKeys, getConstraintsForTable } from '~/helpers/dbSchema'
-import { get_variables } from '~/helpers/identify';
+import { get_stringsForTables, extractValues } from '~/helpers/identify';
 import { getType } from '~/helpers/dbSchema';
 
 export default defineEventHandler(async event => {
@@ -35,13 +35,24 @@ export default defineEventHandler(async event => {
   if (event.node.req.method && event.node.req.method == 'GET' && !event.context.params.id) {
     const foreignKeys = await getConstraintsForTable(tableName)
 
-    const joinClauses = Object.entries(foreignKeys.references).reduce(
+    const tableIdentifiedBy = await get_stringsForTables(
+      config.connection.database, 
+      ( 
+        Object.values(foreignKeys.references).reduce(
+          (acc, ref) => ([...acc, ref.table]), 
+          []
+        )
+      )
+    )
+    const {identifiedPerField, ...references} = Object.entries(foreignKeys.references).reduce(
       (acc, ref, idx) => {
         // add a field which indicates that the left join actually yielded a record
         acc.select.push(`if(${ref[1].table}_${idx}.${ref[1].column} is not null, 1, 0) as _${ref[0]}_exists`)
+        
+        acc.identifiedPerField[ref[0]] = tableIdentifiedBy[ref[1].table]
 
         // add the fields that are used in the identifiedBy config field to the query response
-        get_variables(ref[1].table).forEach(field => {
+        extractValues(tableIdentifiedBy[ref[1].table]).forEach(field => {
           acc.select.push(`${ref[1].table}_${idx}.${field} as _${ref[0]}_iBy_${field}`)
         });
 
@@ -53,7 +64,7 @@ export default defineEventHandler(async event => {
 
         return acc
       },
-      {select: [], join: []}
+      {select: [], join: [], identifiedPerField: {}}
     )
 
     const primaryKeys = await getAllPrimaryKeys()
@@ -62,10 +73,10 @@ export default defineEventHandler(async event => {
       select: [
         `${tableName}.*`, 
         `${tableName}.${primaryKeys[config.connection.database][tableName]} as _PK`,
-        ...joinClauses.select
+        ...references.select
       ].join(', '),
       from: tableName,
-      join: joinClauses['join'].join(' ')
+      join: references['join'].join(' ')
     }
 
     const [records, definitions] = await connection().promise().query(
@@ -100,10 +111,11 @@ export default defineEventHandler(async event => {
         records,
         tableConfiguration: config[tableName],
         foreignKeys,
+        identifiedPerField
       }
     }
     else {
-      return {records, definitions, foreignKeys, primaryKeys, tableConfiguration: config[tableName]}
+      return {records, definitions, foreignKeys, primaryKeys, tableConfiguration: config[tableName], identifiedPerField}
     }
   }
 })

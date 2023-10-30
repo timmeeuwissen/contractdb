@@ -11,7 +11,7 @@ v-col(cols="auto")
         tbody
           tr(v-for="table in tablesStore.tables")
             td 
-              NuxtLink(:href="`/table/${table.tableName}`") {{ table.tableName }}
+              NuxtLink(:to="`/table/${table.tableName}`") {{ table.tableName }}
 
 //- in case we have importers, list them here. Importers can import over a multitude
 //- of tables, there rules are defined in the config

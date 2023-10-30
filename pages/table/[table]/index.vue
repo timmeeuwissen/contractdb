@@ -43,9 +43,7 @@ v-card
           //- todo : should be handled by helper function, but requires DB connection to resolve
           //-        the unique columns
           | {{ 
-          | data.tableConfiguration[
-          |   data.foreignKeys.references[def.key].table
-          | ].identifiedBy.replaceAll(
+          | data.identifiedPerField[def.key].replaceAll(
           |   /\{\{\s?(.*?)\s\}\}/g, 
           |   (match, joinCol) => item.raw[`_${def.key}_iBy_${joinCol}`]
           | ) 

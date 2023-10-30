@@ -1,19 +1,9 @@
 import config from '~/config.json'
+import { getUniques } from './dbSchema'
 
 const resolvedIdentifications = {}
 
-export const get_variables = (table) => {
-  const extractValues = str => [[...str.matchAll(/{{\s?(.+?)\s}}/ig)].map(rec => rec[1])]
-  if (
-    (table in config.tableConfiguration)
-    && ('identifiedBy' in config.tableConfiguration[table])
-  ) {
-    return extractValues(config.tableConfiguration[table].identifiedBy)
-  }
-  // todo: figure out the unique and return those fields
-  return []
-}
-
+export const extractValues = str => [[...str.matchAll(/{{\s?(.+?)\s}}/ig)].map(rec => rec[1])]
 export const get_identifiedBy = (table, vals) => {
   // when there is a template defined, apply data to that record and return
   if (
@@ -29,3 +19,25 @@ export const get_identifiedBy = (table, vals) => {
   // todo: get unique columns and form an identifier.
   return ''
 }
+
+export const get_stringsForTables = async (database, tables) => await tables.reduce(
+  async (accProm, table) => {
+    const acc = await accProm
+    if (
+      config.connection.database == database 
+      && (table in config.tableConfiguration)
+      && ('identifiedBy' in config.tableConfiguration[table])) {
+      acc[table] = config.tableConfiguration[table].identifiedBy
+    }
+    // find the biggest unique on the table, since it says the most about the record
+    // ordering of fields is done in the database
+    else {
+      // todo: prioritize primary keys below the unique keys
+      const uniques = Object.values(await getUniques(database, table)).sort((a,b) => a.length < b.length)
+      acc[table] = uniques[0].map(unique => '{{ ' + unique + ' }}').join(', ')
+    }
+
+    return acc
+  },
+  {}
+)

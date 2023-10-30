@@ -1,18 +1,23 @@
 export default () => {
   
   const _field = (meta, priorExposures) => {
-    let currentReference, currentMethods = [], applied
+    let currentReference, currentReferenceSet, currentMethods = [], applied, currentProperties
 
     const expose = {
       ...priorExposures,
       setReference(refMeta) {
         if(currentReference) return currentReference
-        currentReference = _tables(refMeta).setTable(refMeta.table)
+        currentReferenceSet = _databases()
+        currentReference = currentReferenceSet.setDatabase(refMeta.database).setTable(refMeta.table)
+        // console.log('CURR REF', refMeta, currentReference.toString())
         return currentReference
       },
       setMethod(method, args) {
         currentMethods.push({method, args})
         return expose
+      },
+      setProperties(properties) {
+        currentProperties = properties
       },
       applyValue(value) {
         // flatten the potential values produced by the callbacks
@@ -37,12 +42,17 @@ export default () => {
         applied = undefined
       },
       getTree() {
-        if (currentReference) {
-          return { children: currentReference(getTree) }
-        }
-        else {
-          return { meta, methods: currentMethods }
-        }
+        const tree = {meta, properties: currentProperties, methods: currentMethods}
+        return currentReferenceSet
+          ? {...tree, children: currentReferenceSet.getTree()}
+          : tree
+      },
+      toString() {
+        return `${meta.database}.${meta.table}.${meta.field}`
+      },
+      find(metaSearch) {
+        if(currentReference && metaSearch._refSearch) return currentReference
+        return expose
       }
     }
     return expose
@@ -54,6 +64,7 @@ export default () => {
       ...priorExposures,
       setField(field) {
         fields[field] = _field({...meta, field}, expose)
+        console.log(`Fields for ${meta.table}`, Object.keys(fields))
         return fields[field]
       },
       async applyRecords(recordCb) {
@@ -91,16 +102,24 @@ export default () => {
             {
               type: 'field',
               title: key,
-              meta: fieldDetails,
+              meta,
+              path: expose.toString(),
+              ...fieldDetails.getTree(),
             }
           ]), [])        
       },
+      toString() {
+        return `${meta.database}.${meta.table}`
+      },
       find(metaSearch) {
-        if('field' in metaSearch) {
-          if(metaSearch.field in fields) {
-            return (fields[metaSearch.field]).find(metaSearch) || expose
+        if('column' in metaSearch) {
+          if(metaSearch.column in fields) {
+            return (fields[metaSearch.column]).find(metaSearch) || expose
           }
-          throw new Error(`Table ${metaSearch.field} was not yet defined in the template for table ${metaSearch.table} and database ${metaSearch.database}`)
+          if(metaSearch._createIfNotSet) {
+            return expose.setField(metaSearch.column)
+          }
+          throw new Error(`Field ${metaSearch.column} was not yet defined in the template for table ${metaSearch.table} and database ${metaSearch.database}`)
         }
         return expose
       }      
@@ -125,15 +144,22 @@ export default () => {
             {
               type: 'table',
               title: table,
-              meta: {},
+              meta,
+              path: expose.toString(),
               children: records.getTree()
             }
           ]), [])        
+      },
+      toString() {
+        return `${meta.database}`
       },
       find(metaSearch) {
         if('table' in metaSearch) {
           if(metaSearch.table in tables) {
             return (tables[metaSearch.table]).find(metaSearch) || expose
+          }
+          if(metaSearch._createIfNotSet) {
+            return expose.setTable(metaSearch.table)
           }
           throw new Error(`Table ${metaSearch.table} was not yet defined in the template for database ${metaSearch.database}`)
         }
@@ -148,7 +174,7 @@ export default () => {
     const expose = {
       setDatabase(database) { 
         if(!(database in databases))
-        databases[database] = _tables({database}, expose)
+          databases[database] = _tables({database}, expose)
         return databases[database]
       },
       async applyRecords(recordCb) {
@@ -164,9 +190,13 @@ export default () => {
               type: 'database',
               title: database,
               meta: {},
+              path: '',
               children: tables.getTree()
             }
           ]), [])        
+      },
+      toString() {
+        return ''
       },
       find(metaSearch) {
         if('database' in metaSearch) {
