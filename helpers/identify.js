@@ -33,8 +33,10 @@ export const get_stringsForTables = async (database, tables) => await tables.red
     // ordering of fields is done in the database
     else {
       // todo: prioritize primary keys below the unique keys
-      const uniques = Object.values(await getUniques(database, table)).sort((a,b) => a.length < b.length)
-      acc[table] = uniques[0].map(unique => '{{ ' + unique + ' }}').join(', ')
+      acc[table] = Object.entries(await getUniques(database, table)).sort((a,b) => {
+        if (a[0] == 'PRIMARY') return 1
+        return a[1].length < b[1].length
+      })[0][1].map(unique => '{{ ' + unique + ' }}').join(', ')
     }
 
     return acc

@@ -44,6 +44,7 @@ export default defineEventHandler(async event => {
         )
       )
     )
+    
     const {identifiedPerField, ...references} = Object.entries(foreignKeys.references).reduce(
       (acc, ref, idx) => {
         // add a field which indicates that the left join actually yielded a record
