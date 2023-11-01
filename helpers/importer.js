@@ -1,4 +1,4 @@
-import { parse } from 'csv-parse'
+import { parse } from 'csv'
 import config from '~/config.json'
 import { execute } from './importer/process'
 

@@ -47,9 +47,10 @@ export const getAllPrimaryKeys = async () => {
   }, {})
 } 
 
+// todo: include database in structure
 export const getAllConstraints = async () => {
   const [foreignKeyRecords] = await connection().promise().query(
-    'select TABLE_NAME, COLUMN_NAME, REFERENCED_TABLE_NAME, REFERENCED_COLUMN_NAME ' +
+    'select TABLE_NAME, COLUMN_NAME, REFERENCED_TABLE_NAME, REFERENCED_COLUMN_NAME, CONSTRAINT_NAME ' +
     'from information_schema.key_column_usage ' +
     'where REFERENCED_TABLE_SCHEMA is not null ');
   
@@ -57,7 +58,8 @@ export const getAllConstraints = async () => {
     if (rec.TABLE_NAME in acc) {
       acc[rec.TABLE_NAME].references[rec.COLUMN_NAME] = {
         table: rec.REFERENCED_TABLE_NAME, 
-        column: rec.REFERENCED_COLUMN_NAME
+        column: rec.REFERENCED_COLUMN_NAME,
+        constraint: rec.CONSTRAINT_NAME
       }
     }
     else {
@@ -65,7 +67,8 @@ export const getAllConstraints = async () => {
         references: {
           [rec.COLUMN_NAME]: {
             table: rec.REFERENCED_TABLE_NAME, 
-            column: rec.REFERENCED_COLUMN_NAME
+            column: rec.REFERENCED_COLUMN_NAME,
+            constraint: rec.CONSTRAINT_NAME
           }
         },
         referencedBy: []
@@ -74,7 +77,8 @@ export const getAllConstraints = async () => {
     if (rec.REFERENCED_TABLE_NAME in acc) {
       acc[rec.REFERENCED_TABLE_NAME].referencedBy.push({
         table: rec.TABLE_NAME, 
-        column: rec.COLUMN_NAME
+        column: rec.COLUMN_NAME,
+        constraint: rec.CONSTRAINT_NAME
       })
     }
     else {
@@ -82,7 +86,8 @@ export const getAllConstraints = async () => {
         references: {},
         referencedBy: [{
           table: rec.TABLE_NAME, 
-          column: rec.COLUMN_NAME
+          column: rec.COLUMN_NAME,
+          constraint: rec.CONSTRAINT_NAME
         }]
       }
     }

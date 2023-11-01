@@ -41,7 +41,7 @@
         "Id": { 
           "method": "split", 
           "args": {"pattern": ","}, 
-          "target": "contracts.ContractId"
+          "target": "contracts.contractId"
         },
         "xECM code": null,
         "Budget Type": { 
@@ -65,7 +65,7 @@
             "condition": "exists", 
             "targets": ["Vendor Entity Name"]
           }, 
-          "target": "vendors.name" 
+          "target": ["contracts.vendorId", "vendors.parentVendorId", "vendors.name"] 
         },
         "Ariba / \n Readsoft": null,
         "Ariba PR/PO": null,

@@ -1,4 +1,3 @@
-import config from '~/config.json'
 import strategize from './strategize'
 import dbTemplate from '../dbTemplate'
 import connection from '../connection'
@@ -9,6 +8,10 @@ import { deconstructTarget, getAllPrimaryKeys } from '../dbSchema'
 const defaultMethods = {
   split: (value, args) => String(value).split(args.pattern),
   conditionalRemap: (value, args) => {
+    if ('targets' in args && value) {
+      args.targets.forEach()
+    }
+    return value
     // todo : write method, requires access to template?
   },
   boolRemap: (value, args) => {

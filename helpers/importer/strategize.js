@@ -11,7 +11,7 @@ const amendDoImport = (acc, srcKey, _target, _mapConf) => {
   acc.doImport[srcKey] = true
 }
 
-const amendMapping = (acc, srcKey, target, mapConf) => {
+const amendMapping = (acc, srcKey, targets, mapConf) => {
   acc.mapping.forward[srcKey] = {...target, mapConf}
   
   if(!(target.database in acc.mapping.reverse)) {
@@ -87,11 +87,12 @@ export default (importerType) => {
           amendMapping(acc, srcKey, deconstructTarget(mapDef.target))
         }
         // determine which fields imply a foreign key
-        else if(Array.isArray(mapDef.target) && mapDef.target.length == 2) {
-          amendRelation(acc, srcKey, deconstructTarget(mapDef.target[0]), mapDef)
-          amendMapping(acc, srcKey, deconstructTarget(mapDef.target[1]), mapDef)
+        else if(Array.isArray(mapDef.target)) {
+          for(let iRelationOrigin = 0; iRelationOrigin <= mapDef.target.length - 1; iRelationOrigin++) {
+            amendRelation(acc, srcKey, deconstructTarget(mapDef.target[0]), mapDef)
+            amendMapping(acc, srcKey, deconstructTarget(mapDef.target[1]), mapDef)
+          }
         }
-        else throw new Error('targets are either strings or a tuple of 2 to indicate the relational field')
       }
 
       if('method' in mapDef) {

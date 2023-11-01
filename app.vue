@@ -2,5 +2,6 @@
 v-app
   v-container(fill-height)
     v-row(justify="center")
-      NuxtPage
+      NuxtLayout
+        NuxtPage
 </template>
