@@ -1,5 +1,5 @@
 <template lang="pug">
-v-card 
+v-card(width="500" v-if="data")
   //- skipping all keys prefixed with underscore
   //- those are informationsets targetet for visual aid
   v-data-table.tableList(

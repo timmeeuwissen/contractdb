@@ -26,6 +26,24 @@
     },
     "domains": {
       "identifiedBy": "{{ domain }}"
+    },
+    "contracts": {
+      "fields": {
+        "contractStartDate": {
+          "dateDelimiter": {
+            "max": {
+              "target": "contractEndDate"
+            }
+          }
+        },
+        "contractEndDate": {
+          "dateDelimiter": {
+            "min": {
+              "target": "contractStartDate"
+            }
+          }
+        }
+      }
     }
   },
   "imports": {

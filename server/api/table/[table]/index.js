@@ -20,18 +20,6 @@ export default defineEventHandler(async event => {
     )
   }
 
-  if (event.node.req.method && event.node.req.method == 'GET' && event.context.params.id) {
-    const [tableDefRec] = await connection().promise().query(
-      `show full columns from ${tableName} where \`Key\`='PRI'`
-    )
-    const [records, definitions] = await connection().promise().query(
-      `select * from ${tableName} where ${tableDefRec.records[0].Field} = ?`, 
-      [event.query.id]
-    );
-
-    return {records, definitions}
-  }
-
   if (event.node.req.method && event.node.req.method == 'GET' && !event.context.params.id) {
     const foreignKeys = await getConstraintsForTable(tableName)
 

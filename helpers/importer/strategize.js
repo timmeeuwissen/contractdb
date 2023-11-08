@@ -11,7 +11,7 @@ const amendDoImport = (acc, srcKey, _target, _mapConf) => {
   acc.doImport[srcKey] = true
 }
 
-const amendMapping = (acc, srcKey, targets, mapConf) => {
+const amendMapping = (acc, srcKey, target, mapConf) => {
   acc.mapping.forward[srcKey] = {...target, mapConf}
   
   if(!(target.database in acc.mapping.reverse)) {
