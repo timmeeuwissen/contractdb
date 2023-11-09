@@ -1,7 +1,7 @@
 import strategize from './strategize'
 import dbTemplate from '../dbTemplate'
 import connection from '../connection'
-import { deconstructTarget, getAllPrimaryKeys } from '../dbSchema'
+import { deconstructTarget, getAllPrimaryKeys, get_tableDescription } from '../dbSchema'
 
 // preprocess returns a filled recordConstructor 
 

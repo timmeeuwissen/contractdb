@@ -16,10 +16,13 @@ v-card
         tr
           th Source Field 
           th Target Column
+          th Database type (coercion)
       tbody
-        tr(v-for="[key, target] in Object.entries(data.keysToField)")
+        tr(v-for="(props, key) in data.keysToField")
           td {{ key }}
-          td {{ target.join('.') }}
+          td {{ props.path.join('.') }}
+          td(v-if="!props.properties || !props.properties.Type").text-disabled Invalid mapping
+          td(v-else) {{ props.properties.Type }}
 v-row
   v-col(cols="4")
     v-card
@@ -54,9 +57,10 @@ v-row
             tr
               th Name
               td {{ infoData.deepest.title }}
-            tr(v-if="infoData.deepest.coercion")
+            tr(v-if=" infoData.deepest.type == 'field'")
               th Field coercion
-              td {{ infoData.deepest.coercion }}
+              td(v-if="infoData.deepest.properties && infoData.deepest.properties.Type") {{ infoData.deepest.properties.Type }}
+              td(v-else).text-disabled Invalid mapping {{ infoData.deepest }}
             tr(
               :set="meta = infoData.deepest.meta"
             )

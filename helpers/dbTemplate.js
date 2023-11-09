@@ -9,15 +9,19 @@ export default () => {
         if(currentReference) return currentReference
         currentReferenceSet = _databases()
         currentReference = currentReferenceSet.setDatabase(refMeta.database).setTable(refMeta.table)
-        // console.log('CURR REF', refMeta, currentReference.toString())
         return currentReference
       },
       setMethod(method, args) {
         currentMethods.push({method, args})
         return expose
       },
-      setProperties(properties) {
-        currentProperties = properties
+      setProperties(properties, merge = true) {
+        currentProperties = merge 
+          ? {...(currentProperties || {}), ...properties}
+          : properties
+      },
+      setProperty(key, value) {
+        currentProperties[key] = value
       },
       applyValue(value) {
         // flatten the potential values produced by the callbacks
@@ -53,6 +57,12 @@ export default () => {
       find(metaSearch) {
         if(currentReference && metaSearch._refSearch) return currentReference
         return expose
+      },
+      getProperties() {
+        return currentProperties
+      },
+      getMeta() {
+        return meta
       }
     }
     return expose
@@ -64,7 +74,6 @@ export default () => {
       ...priorExposures,
       setField(field) {
         fields[field] = _field({...meta, field}, expose)
-        console.log(`Fields for ${meta.table}`, Object.keys(fields))
         return fields[field]
       },
       async applyRecords(recordCb) {

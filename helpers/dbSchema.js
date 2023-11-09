@@ -3,8 +3,9 @@ import mysql from 'mysql2'
 import config from '~/config.json'
 
 const systemTables = ['mysql', 'performance_schema', 'sys']
-let typemap;
-let uniques;
+let typemap
+let uniques
+let tableDescriptions = {}
 
 export const deconstructTarget = (targetString) => {
   // make sure we know the database, table and column
@@ -192,4 +193,20 @@ export const getUniques = async (database, table) => {
     },{})
 
   return uniques[database][table]
+}
+
+export const get_tableDescription = async (database, table) => {
+  if (!(database in tableDescriptions)) tableDescriptions[database] = {}
+  if (table in tableDescriptions[database]) return tableDescriptions[database][table]
+  
+  const [records] = await connection().promise().query(
+    `describe ${database}.${table}`
+  )
+  
+  tableDescriptions[database][table] = records.reduce(
+    (acc, rec) => ({...acc, [rec.Field]: rec}),
+    {}
+  )
+
+  return tableDescriptions[database][table]
 }
