@@ -1,5 +1,5 @@
 <template lang="pug">
-v-card(width="500" v-if="data")
+v-card(width="80%" v-if="data")
   //- skipping all keys prefixed with underscore
   //- those are informationsets targetet for visual aid
   v-data-table.tableList(
@@ -7,6 +7,8 @@ v-card(width="500" v-if="data")
     :items="data.records"
     item-value="_PK"
     show-select
+    density="compact"
+    hover
     v-model="selectedRecords"
   )
     template(v-slot:top)
@@ -19,10 +21,15 @@ v-card(width="500" v-if="data")
             v-card-title.text-h5 Are you sure you want to remove this item
             v-card-actions
               v-spacer
-              v-btn(variant="text" @click="closeDelete()") Cancel
-              v-btn(variant="text" @click="confirmDelete()") OK
+              v-btn(variant="text" density="compact" @click="closeDelete()") Cancel
+              v-btn(variant="text" density="compact" @click="confirmDelete()") OK
               
-    
+    //- todo : translate header columns
+    template(
+      v-for="def in data.headers"
+      #[`column.${def.key}`]="{column}"
+    ) {{ column.title }}
+
     template(
       v-for="def in data.headers"
       #[`item.${def.key}`]="{ item }"
@@ -31,8 +38,9 @@ v-card(width="500" v-if="data")
       template(
         v-if="def.key == 'actions'"
       )
-        v-btn(icon="mdi-text-box-edit-outline" density="compact" :to="`/table/${route.params.table}/${item.raw._PK}`") 
-        v-btn(icon="mdi-delete-outline" density="compact" @click="deleteItem(item)")
+        v-row
+          v-btn(icon="mdi-text-box-edit-outline" density="compact" :to="`/table/${route.params.table}/${item.raw._PK}`") 
+          v-btn(icon="mdi-delete-outline" density="compact" @click="deleteItem(item)")
       
       //- a column which refers to an external record
       template(
@@ -40,20 +48,25 @@ v-card(width="500" v-if="data")
       )
         //- when there's a foreign key attached, we show the relevant information here
         template(v-if="item.raw[`_${def.key}_exists`]")
-          //- todo : should be handled by helper function, but requires DB connection to resolve
-          //-        the unique columns
-          | {{ 
-          | data.identifiedPerField[def.key].replaceAll(
-          |   /\{\{\s?(.*?)\s\}\}/g, 
-          |   (match, joinCol) => item.raw[`_${def.key}_iBy_${joinCol}`]
-          | ) 
-          | }}
-          v-btn(
-            icon="mdi-text-box-edit-outline"
-            :to="`/table/${data.foreignKeys.references[def.key].table}/${item.raw[def.key]}`"
-          )
+          v-row
+            v-col.text-truncate
+              //- todo : should be handled by helper function, but requires DB connection to resolve
+              //-        the unique columns
+              | {{ 
+              | data.identifiedPerField[def.key].replaceAll(
+              |   /\{\{\s?(.*?)\s\}\}/g, 
+              |   (match, joinCol) => item.raw[`_${def.key}_iBy_${joinCol}`]
+              | ) 
+              | }}
+            v-col.text-right
+              v-btn(
+                variant="plain"
+                icon="mdi-text-box-edit-outline"
+                density="compact"
+                :to="`/table/${data.foreignKeys.references[def.key].table}/${item.raw[def.key]}`"
+              )
         //- in case it doesn't exist, show that there's no relation been made
-        span.unavailable(v-else) not-linked
+        span.text-disabled(v-else) not-linked
       template(
         v-else
       ) {{ item.raw[def.key] }}
@@ -89,9 +102,6 @@ const confirmDelete = () => {
 </script>
 <style lang="sass" scoped>
 .tableList
-  .unavailable
-    color: #ccc
-    font-style: italic
   .foreignValue
       .action
         display: none

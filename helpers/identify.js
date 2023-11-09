@@ -5,7 +5,6 @@ const resolvedIdentifications = {}
 
 export const extractValues = str => [[...str.matchAll(/{{\s?(.+?)\s}}/ig)].map(rec => rec[1])]
 export const get_identifiedBy = (table, vals) => {
-  // when there is a template defined, apply data to that record and return
   if (
     (table in config.tableConfiguration)
     && ('identifiedBy' in config.tableConfiguration[table])
@@ -43,3 +42,9 @@ export const get_stringsForTables = async (database, tables) => await tables.red
   },
   {}
 )
+
+export const apply_recToIndentiedBy = (identifiedBy, rec) => 
+  identifiedBy.replaceAll(
+      /\{\{\s?(.*?)\s\}\}/g, 
+      (_match, field) => rec[field]
+    ) 

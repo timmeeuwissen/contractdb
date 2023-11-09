@@ -1,11 +1,11 @@
 <template lang="pug">
-v-card(width="500")
+v-card(width="80%")
   template(v-slot:title) {{ table }}: {{ id }}
 v-form(
   @prevent.default="updateRecord"
   ref="dataForm"
 )
-  v-card(width="500")
+  v-card(width="80%")
     template(v-slot:title).text-left data
     template(v-slot:text v-if="record")
       v-table
@@ -15,15 +15,20 @@ v-form(
             td
               template(v-if="def.mutable")
                 v-text-field(
-                  v-if="def.type.match(/LONG|INT/)"
+                  v-if="def.type.match(/LONG|INT/) && !def.constraint"
                   v-model="record[field]"
                   hide-details
                   single-line   
                   type="number"
                   density="compact"
                 )            
+                v-autocomplete(
+                  v-if="def.constraint",
+                  v-model="record[field]"
+                  :items="autocompleteStore.completerData(def.constraint.table)"
+                )
                 v-text-field(
-                  v-if="def.type.match(/STRING/)"
+                  v-if="def.type.match(/STRING/) && !def.constraint"
                   v-model="record[field]"
                   hide-details
                   single-line
@@ -55,6 +60,7 @@ v-form(
 import { useRecordsStore } from '~/stores/records'
 import dateInput from '~/components/dateInput'
 import { useDebugStore } from '~/stores/debug'
+import { useAutocompleteStore } from '~/stores/autocomplete'
 
 export default {
   async setup() {
@@ -62,13 +68,16 @@ export default {
       table = route.params.table,
       id = route.params.id,
       recordsStore = useRecordsStore(),
-      debugStore = useDebugStore()
+      debugStore = useDebugStore(),
+      autocompleteStore = useAutocompleteStore()
     
     recordsStore.fetchRecord(table, id)
+    autocompleteStore.fetchCompleterData(table)
 
     return {
       recordsStore,
       debugStore,
+      autocompleteStore,
       table,
       id
     }
