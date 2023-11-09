@@ -1,31 +1,33 @@
 <template lang="pug">
 //- list all databases that are allowed to be showed here
-v-col(cols="auto")
-  v-row
-    v-btn(
-      icon="mdi-home-outline"
-      to="/"
-    )
-    v-spacer
-    v-switch(
-      v-model="debugStore.active"
-      color="primary"
-      label="Debugging"
-    )
-  v-card
-    v-card-title Menu
-    v-card-text
-      v-table
-        thead
-          tr
-            th Datasets
-        tbody
-          tr(v-for="table in tablesStore.tables.filter(table => table.inListing)")
-            td 
-              NuxtLink(:to="`/table/${table.tableName}`") {{ table.tableName }}
+v-container
+  v-row.flex-nowrap
+    v-col(cols="2")
+      v-row
+        v-btn(
+          icon="mdi-home-outline"
+          to="/"
+        )
+        v-spacer
+        v-switch(
+          v-model="debugStore.active"
+          color="primary"
+          label="Debugging"
+        )
+      v-card
+        v-card-title Menu
+        v-card-text
+          v-table
+            thead
+              tr
+                th Datasets
+            tbody
+              tr(v-for="table in tablesStore.tables.filter(table => table.inListing)")
+                td 
+                  NuxtLink(:to="`/table/${table.tableName}`") {{ table.tableName }}
 
-v-col.d-flex.align-center.flex-column.mt-4
-  slot
+    v-col(cols="10").justify.pt-15
+      slot
 </template>
 <script setup>
 import { useTablesStore } from '~/stores/tables'

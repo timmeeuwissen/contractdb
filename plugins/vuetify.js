@@ -8,6 +8,11 @@ export default defineNuxtPlugin(nuxtApp => {
   const vuetify = createVuetify({
     ssr: true,
     components: {...components, VDataTable},
+    defaults: {
+      VCard: {
+        class: 'mb-4'
+      }
+    },
     directives,
     icons: {
       defaultSet: 'mdi',

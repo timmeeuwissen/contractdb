@@ -1,5 +1,5 @@
 <template lang="pug">
-v-card(width="950")
+v-card
   v-card-title What to do
   v-card-text 
     v-list(lines="one")

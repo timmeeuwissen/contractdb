@@ -1,11 +1,11 @@
 <template lang="pug">
-v-card(width="80%")
+v-card
   template(v-slot:title) {{ table }}: {{ id }}
 v-form(
   @prevent.default="updateRecord"
   ref="dataForm"
 )
-  v-card(width="80%")
+  v-card
     template(v-slot:title).text-left data
     template(v-slot:text v-if="record")
       v-table
