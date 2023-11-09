@@ -54,7 +54,7 @@ v-form(
                 template(v-slot:activator="{ props }")
                   v-icon(v-bind="props" color="grey-lighten-1") mdi-help
 
-    template.loadineg(v-else v-slot:text) Loading
+    template.loading(v-else v-slot:text) Loading
 </template>
 <script>
 import { useRecordsStore } from '~/stores/records'

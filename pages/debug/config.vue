@@ -1,19 +1,23 @@
 <template lang="pug">
-v-card(width="80%")
-  v-card-title Table configuration
+v-card(variant="tonal")
+  v-card-title Configuration
+  v-card-text 
+    | Here you can find how the application is configured.  
+v-card(prepend-icon="mdi-table" title="Table configuration")
   v-card-text
     v-data-table(
       :headers="tableConfHeaders"
       :items="tablesStore.tables"
       item-value="tableName"
       show-expand
+      hover
     )
       template(#[`item.inListing`]="{item}")
         v-icon(:icon="item.raw.inListing ? 'mdi-radiobox-marked' : 'mdi-radiobox-blank'")
       
       template(#expanded-row="{ columns, item }")
         tr
-          td(:colspan="columns.length" v-if="'fields' in tableConfiguration[item.raw.tableName]")
+          td(:colspan="columns.length" v-if="tableConfiguration[item.raw.tableName] && ('fields' in tableConfiguration[item.raw.tableName])")
             v-table.text-caption
               thead
                 tr
@@ -25,11 +29,10 @@ v-card(width="80%")
                   td 
                     pre {{ JSON.stringify(fieldConfig, null, 2) }}
 
-          td.text-unavailable(:colspan="columns.length" v-else)
+          td.text-disabled(:colspan="columns.length" v-else)
             | There is no field information set for this table
 
-v-card(width="80%")
-  v-card-title Importers
+v-card(prepend-icon="mdi-database" title="Importers")
   v-card-text
     v-data-table(
       :headers="importHeaders"
@@ -43,7 +46,7 @@ v-card(width="80%")
         v-tooltip(:text="JSON.stringify(item.raw.parserConfig, null, 2)") 
           template(v-slot:activator="{ props }")
             v-icon(v-bind="props" color="grey-lighten-1") mdi-cog-outline 
-        v-btn(icon="mdi-file-tree-outline" density="compact" :to="item.raw.targUrl")
+        v-btn(icon="mdi-file-tree-outline" density="compact" variant="plain" :to="item.raw.targUrl")
       template(#expanded-row="{ columns, item }")
         tr
           td(:colspan="columns.length")
