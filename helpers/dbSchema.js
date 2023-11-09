@@ -153,6 +153,11 @@ export const getConstraintsForTable = async table => {
 }
 
 export const getUniques = async (database, table) => {
+  if (uniques) {
+    if(!(database in uniques)) throw new Error(`Could not resolve uniques for DB ${database}`)
+    if(!(table in uniques[database])) throw new Error(`Could not resolve uniques for table ${database}.${table}`)
+    return uniques[database][table]
+  }
   uniques = (await connection().promise().query(
       `select ` +
       `  information_schema.TABLE_CONSTRAINTS.CONSTRAINT_SCHEMA, ` +

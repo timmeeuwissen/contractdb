@@ -1,15 +1,32 @@
-import connection from '~/helpers/connection'
 import config from '~/config.json'
+import connection from '~/helpers/connection'
+import { get_stringsForTables } from '~/helpers/identify'
 
+const { connection: {database}, tableConfiguration } = config
 export default defineEventHandler(async event => {
-  const omitFromListing = Object.entries(config.tableConfiguration).reduce(
-    (acc, entry) => entry[1].omitFromListing ? [...acc, `'${entry[0]}'`] : acc, 
-    []).join(', ')
+  const [records] = await connection().promise().query('show tables');
+  const tables = records.reduce(
+    (acc, entry) => ([...acc, Object.values(entry)[0]]), 
+    []
+  )
 
-  const [records] = await connection().promise().query(
-    omitFromListing 
-    ? `show tables where Tables_in_${config.connection.database} not in (${omitFromListing})` 
-    : 'show tables'
-  );
-  return records.reduce((acc,entity) => [...acc, {tableName: Object.values(entity)[0]}],[])
+  const tableIdentifiedBy = await get_stringsForTables(
+    database, 
+    tables
+  )
+
+  return tables.reduce(
+    (acc, tableName) => ([
+          ...acc, 
+          {
+            tableName,
+            inListing: (tableName in tableConfiguration)
+              && ('omitFromListing' in tableConfiguration[tableName])
+              ? !tableConfiguration[tableName].omitFromListing
+              : true,
+            identifiedBy: tableIdentifiedBy[tableName]
+          }
+        ])
+    ,[]
+  )
 })

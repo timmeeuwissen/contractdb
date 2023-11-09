@@ -20,7 +20,7 @@ v-col(cols="auto")
           tr
             th Datasets
         tbody
-          tr(v-for="table in tablesStore.tables")
+          tr(v-for="table in tablesStore.tables.filter(table => table.inListing)")
             td 
               NuxtLink(:to="`/table/${table.tableName}`") {{ table.tableName }}
 

@@ -2,7 +2,32 @@
 v-card(width="80%")
   v-card-title Table configuration
   v-card-text
-    pre.text-caption {{ tableConfiguration }}
+    v-data-table(
+      :headers="tableConfHeaders"
+      :items="tablesStore.tables"
+      item-value="tableName"
+      show-expand
+    )
+      template(#[`item.inListing`]="{item}")
+        v-icon(:icon="item.raw.inListing ? 'mdi-radiobox-marked' : 'mdi-radiobox-blank'")
+      
+      template(#expanded-row="{ columns, item }")
+        tr
+          td(:colspan="columns.length" v-if="'fields' in tableConfiguration[item.raw.tableName]")
+            v-table.text-caption
+              thead
+                tr
+                  th Field
+                  th Config
+              tbody
+                tr(v-for="(fieldConfig, field) in tableConfiguration[item.raw.tableName].fields")
+                  td {{ field }}
+                  td 
+                    pre {{ JSON.stringify(fieldConfig, null, 2) }}
+
+          td.text-unavailable(:colspan="columns.length" v-else)
+            | There is no field information set for this table
+
 v-card(width="80%")
   v-card-title Importers
   v-card-text
@@ -18,26 +43,28 @@ v-card(width="80%")
         v-tooltip(:text="JSON.stringify(item.raw.parserConfig, null, 2)") 
           template(v-slot:activator="{ props }")
             v-icon(v-bind="props" color="grey-lighten-1") mdi-cog-outline 
-      template(#expanded-row="{item}")
-        td(colspan="4")
-          v-table.text-caption(density="compact")
-            thead
-              tr
-                th Source Key
-                th Target field(s)
-                th Method
-            tbody
-              tr(v-for="(fieldDef, srcKey) in item.raw.modelMap")
-                th {{ srcKey }}
-                td.text-disabled(v-if="!fieldDef" colspan="2") Not imported
-                td(v-if="fieldDef") 
-                  pre {{ JSON.stringify(fieldDef.target, null, 2) }}
-                td(v-if="fieldDef")
-                  template(v-if="fieldDef.args")
-                    v-tooltip( :text="JSON.stringify(fieldDef.args, null, 2)") 
-                      template(v-slot:activator="{ props }")
-                        span(v-bind="props") {{ fieldDef.method }}
-                  template(v-else) {{ fieldDef.method }}  
+        v-btn(icon="mdi-file-tree-outline" density="compact" :to="item.raw.targUrl")
+      template(#expanded-row="{ columns, item }")
+        tr
+          td(:colspan="columns.length")
+            v-table.text-caption(density="compact")
+              thead
+                tr
+                  th Source Key
+                  th Target field(s)
+                  th Method
+              tbody
+                tr(v-for="(fieldDef, srcKey) in item.raw.modelMap")
+                  th {{ srcKey }}
+                  td.text-disabled(v-if="!fieldDef" colspan="2") Not imported
+                  td(v-if="fieldDef") 
+                    pre {{ JSON.stringify(fieldDef.target, null, 2) }}
+                  td(v-if="fieldDef")
+                    template(v-if="fieldDef.args")
+                      v-tooltip( :text="JSON.stringify(fieldDef.args, null, 2)") 
+                        template(v-slot:activator="{ props }")
+                          span(v-bind="props") {{ fieldDef.method }}
+                    template(v-else) {{ fieldDef.method }}  
 
     v-list(lines="one")
       v-list-item(to="/import")
@@ -52,11 +79,22 @@ v-card(width="80%")
 // todo : shield database information
 import { acceptHMRUpdate } from 'pinia';
 import { tableConfiguration, imports } from '~/config.json'
+import { useTablesStore } from '~/stores/tables'
 
+const tablesStore = useTablesStore()
+
+// table config
+const tableConfHeaders = [
+  { title: 'Table', key: 'tableName', align: 'begin', sortable: true},
+  { title: 'In Menu', key: 'inListing', align: 'begin', sortable: true},
+  { title: 'Identified by', key: 'identifiedBy', align: 'begin', sortable: true}
+]
+
+// importer
 const importHeaders = [
   { title: 'Importer', key: 'importer', align: 'begin', sortable: true },
   { title: 'Type', key: 'type', align: 'end', sortable: true }, 
-  { title: 'Information', key: 'parserConfig', align: 'end', sortable: false },  
+  { title: '', key: 'parserConfig', align: 'end', sortable: false },  
 ]
 const importRows = Object.entries(imports).reduce(
   (acc, [importer, {type, parserConfig, modelMap}]) => ([
@@ -65,7 +103,8 @@ const importRows = Object.entries(imports).reduce(
       importer,
       type,
       parserConfig,
-      modelMap
+      modelMap,
+      targUrl: `/import/tree/${importer}`
     }
   ]), 
   []
