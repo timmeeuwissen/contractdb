@@ -11,18 +11,30 @@ v-card(
 v-card
   v-card-title Mapping to table
   v-card-text
-    v-table
+    v-table(
+      fixed-header
+      height="400"
+      hover
+    )
       thead
         tr
           th Source Field 
           th Target Column
           th Database type (coercion)
       tbody
-        tr(v-for="(props, key) in data.keysToField")
-          td {{ key }}
-          td {{ props.path.join('.') }}
-          td(v-if="!props.properties || !props.properties.Type").text-disabled Invalid mapping
-          td(v-else) {{ props.properties.Type }}
+        tr(v-for="(props, key) in data.keysToField" :class="getMappingColor(props)")
+          template(v-if="props.mapped")
+            td {{ key }}
+            td {{ props.path.join('.') }}
+            td(v-if="!props.properties || !props.properties.Type").text-disabled 
+              v-icon $error
+              | Invalid mapping
+            td(v-else) {{ props.properties.Type }}
+          template(v-else)
+            td {{ key }}
+            td(colspan="3").text-disabled 
+              v-icon $warning
+              | Not mapped 
 v-row
   v-col(cols="4")
     v-card
@@ -127,6 +139,15 @@ const showInfo = (evt) => {
 const closeInfo = () => {
   infoData.event = undefined
   infoData.deepest = undefined
+}
+
+const getMappingColor = (props) => {
+  if (!props.mapped) {
+    return ['bg-orange-lighten-5']
+  }
+  if (!(props.properties && props.properties.Type) ) {
+    return ['bg-red-lighten-5']
+  }
 }
 
 </script>

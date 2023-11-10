@@ -13,9 +13,13 @@ export default defineNuxtConfig({
   build: {
     transpile: ['vuetify'],
   },
+  i18n: {
+    vueI18n: './i18n.config.js' 
+  },
   modules: [
     '@pinia/nuxt', 
     '@nuxtjs/device',
+    '@nuxtjs/i18n',
     (_options, nuxt) => {
       nuxt.hooks.hook('vite:extendConfig', (config) => {
         // @ts-expect-error

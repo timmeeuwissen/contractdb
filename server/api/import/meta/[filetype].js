@@ -6,20 +6,33 @@ export default defineEventHandler( async event => {
   if (!event.context.params.filetype) {
     throw new Error('No import file detected')
   }
-  
-  const { template, keyToField } = getTemplate(event.context.params.filetype)
-  const keysToField = await Object.entries(keyToField).reduce(
-    async (acc, [key, template]) => 
+  const importerType = event.context.params.filetype
+  const { template, keyToField } = getTemplate(importerType)
+  const keysToField = await Object.entries(config.imports[importerType].modelMap).reduce(
+    async (acc, [key, fieldConfig]) => 
       {
-        const {database: fieldDB, table: fieldTBL, field: fieldCOL} = template.getMeta()
-        template.setProperties((await get_tableDescription(fieldDB, fieldTBL))[fieldCOL])
-  
-        return {
-          ...(await acc), 
-          [key]: {
-            column: key,
-            path: template.toString().split('.'),
-            properties: template.getProperties()
+        if(key in keyToField) {
+          const template = keyToField[key]
+          const {database: fieldDB, table: fieldTBL, field: fieldCOL} = template.getMeta()
+          template.setProperties((await get_tableDescription(fieldDB, fieldTBL))[fieldCOL])
+    
+          return {
+            ...(await acc), 
+            [key]: {
+              mapped: true,
+              column: key,
+              path: template.toString().split('.'),
+              properties: template.getProperties()
+            }
+          }
+        }
+        else {
+          return {
+            ...(await acc),
+            [key]: {
+              mapped: false,
+              config: fieldConfig
+            }
           }
         }
       }, 

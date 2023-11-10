@@ -14,6 +14,11 @@ v-container
           color="primary"
           label="Debugging"
         )
+        v-select(
+          label="Language",
+          v-model="locale"
+          :items="locales"
+        )
       v-card
         v-card-title Menu
         v-card-text
@@ -32,6 +37,7 @@ v-container
 <script setup>
 import { useTablesStore } from '~/stores/tables'
 import { useDebugStore } from '~/stores/debug'
+const { locale, locales } = useI18n()
 
 const debugStore = useDebugStore()
 const tablesStore = useTablesStore()

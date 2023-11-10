@@ -1,5 +1,7 @@
 <template lang="pug">
-v-card
+v-card(
+  variant="tonal"
+)
   template(v-slot:title) {{ table }}: {{ id }}
 v-form(
   @prevent.default="updateRecord"
@@ -23,10 +25,24 @@ v-form(
                   density="compact"
                 )            
                 v-autocomplete(
-                  v-if="def.constraint",
+                  v-if="def.constraint"
                   v-model="record[field]"
                   :items="autocompleteStore.completerData(def.constraint.table)"
                 )
+                  template(v-slot:append)
+                    v-btn(
+                      icon="mdi-pencil"
+                      :disabled="record[field] ? false : true"
+                      density="compact"
+                      variant="plain"
+                      :to="`/table/${definition[field].constraint.table}/${record[field]}`"
+                    )
+                    v-btn(
+                      icon="mdi-table"
+                      density="compact"
+                      variant="plain"
+                      :to="`/table/${definition[field].constraint.table}`"
+                    )
                 v-text-field(
                   v-if="def.type.match(/STRING/) && !def.constraint"
                   v-model="record[field]"
@@ -55,6 +71,12 @@ v-form(
                   v-icon(v-bind="props" color="grey-lighten-1") mdi-help
 
     template.loading(v-else v-slot:text) Loading
+  v-card(
+    prepend-icon="mdi-human-male-girl"
+    title="Required by"
+    color="error"
+  )
+    v-card-text TODO : Present the relations to this record
 </template>
 <script>
 import { useRecordsStore } from '~/stores/records'

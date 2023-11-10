@@ -39,8 +39,18 @@ v-card(v-if="data")
         v-if="def.key == 'actions'"
       )
         v-row
-          v-btn(icon="mdi-text-box-edit-outline" density="compact" :to="`/table/${route.params.table}/${item.raw._PK}`") 
-          v-btn(icon="mdi-delete-outline" density="compact" @click="deleteItem(item)")
+          v-btn(
+            icon="mdi-text-box-edit-outline" 
+            density="compact" 
+            variant="plain"
+            :to="`/table/${route.params.table}/${item.raw._PK}`"
+          ) 
+          v-btn(
+            icon="mdi-delete-outline" 
+            density="compact" 
+            variant="plain"
+            @click="deleteItem(item)"
+          )
       
       //- a column which refers to an external record
       template(

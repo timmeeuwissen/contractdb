@@ -8,7 +8,6 @@ export const useAutocompleteStore = defineStore('autocompleteStore', {
     async fetchCompleterData(table) {
       const response = await useFetch(`/api/table/${table}/autocomplete`)
       this.perTable = { ...this.perTable, ...response.data.value }
-      console.log(this.perTable)
     }
   },
   getters: {
