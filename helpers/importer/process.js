@@ -1,7 +1,7 @@
 import strategize from './strategize'
 import dbTemplate from '../dbTemplate'
 import connection from '../connection'
-import { deconstructTarget, getAllPrimaryKeys, get_tableDescription } from '../dbSchema'
+import { deconstructTarget, getAllPrimaryKeys, getFlags, get_tableDescription } from '../dbSchema'
 
 // preprocess returns a filled recordConstructor 
 
@@ -38,7 +38,12 @@ export const getTemplate = (importerType, methods) => {
     // in case of a relation
     if((srcKey in strategy.relations.forward) && !(srcKey in skipKeys)) {
       // multiple columns bind to the fields of that target table for that relation
-      const {database: fkDatabase, table: fkTable, column: fkColumn} = strategy.relations.forward[srcKey]
+      const {
+        database: fkDatabase, 
+        table: fkTable, 
+        column: fkColumn
+      } = strategy.relations.forward[srcKey]
+      
       strategy.relations.reverse[fkDatabase][fkTable][fkColumn]
         .forEach(trgKey => {
           if (!(trgKey in skipKeys)) {
@@ -81,15 +86,35 @@ export const getTemplate = (importerType, methods) => {
     if (srcKey in skipKeys) return
     const {database, table, mapConf} = strategy.mapping.forward[srcKey]
     skipKeys[srcKey] = true
+    let preppedTemplate = template
+
+    if(mapConf?.target && Array.isArray(mapConf.target)) {
+      preppedTemplate = mapConf.target.reduce(
+        (acc, target, targIdx) => {
+          const searchParams = {
+            ...deconstructTarget(target),
+            _refSearch: true, 
+            _createIfNotSet: true
+          }
+          if (targIdx == mapConf.target.length - 1) delete searchParams.column
+          return acc.find(searchParams)
+        }, 
+        template
+      )
+    }
+    else {
+      preppedTemplate = preppedTemplate.find({ 
+        database,
+        table,
+        _createIfNotSet: true,
+        _refSearch: true,
+      })
+    }
+
+    console.log('prepped', preppedTemplate.toString())
+
     setupTemplate(
-      ( (mapConf?.target && Array.isArray(mapConf.target) && mapConf.target.length == 2) 
-        ? template
-            .find({...deconstructTarget(mapConf.target[0]), _refSearch: true, _createIfNotSet: true})
-            .setReference(deconstructTarget(mapConf.target[1]))
-        : template
-            .setDatabase(database)
-            .setTable(table)
-      ),
+      preppedTemplate,
       srcKey
     )
   })
@@ -100,6 +125,43 @@ export const getTemplate = (importerType, methods) => {
 export const execute = async (importerType, importerRecords, methods) => {
   const primaryKeys = await getAllPrimaryKeys()
   const { template, keyToField } = getTemplate(importerType, methods)
+
+  const logStatModel = {
+    insert: 0,
+    update: 0,
+    processed: 0,
+    errors: []
+  }
+
+  const databaseStats = {
+    totals: structuredClone(logStatModel),
+    perTable: {}
+  }
+
+  const logStats = (database, table, result, error) => {
+    if (!(database in databaseStats.perTable)) {
+      databaseStats.perTable[database] = {}
+    }
+    if (!(table in databaseStats.perTable[database])){
+      databaseStats.perTable[database][table] = structuredClone(logStatModel)
+    }
+
+    if (error) {
+      databaseStats.totals.errors.push(error)
+      databaseStats.perTable[database][table].errors.push(error)
+      console.log(database, table, result, error)
+      if(result) console.log(getFlags(result.serverStatus), getFlags(result.warningStatus))
+      return
+    }
+
+    if (result[0].affectedRows) {
+      databaseStats.totals.errors.push(error)
+      databaseStats.perTable[database][table].errors.push(error)
+    }
+    console.log(database, table, result, getFlags(result.serverStatus), getFlags(result.warningStatus))
+
+    return
+  }
 
   const recordCb = async (meta, record) => {
     const keys = Object.keys(record), values = Object.values(record)
@@ -119,11 +181,16 @@ export const execute = async (importerType, importerRecords, methods) => {
       updateInsertId +
       keys.reduce((acc, key) => ([...acc, `${key} = values(${key})`]), []).join(', ')
     
-    const result = await connection().promise().query(query, values)
-
-    const insertId = result[0].insertId || record[priKey]
-    // console.log(`InsertID was ${insertId}`, result, query, values)
-    return insertId
+    try {
+      const result = await connection().promise().query(query, values)
+      logStats(meta.database, meta.table, result)
+      const insertId = result[0].insertId || record[priKey]
+      return insertId
+    }
+    catch(err) {
+      logStats(meta.database, meta.table, null, err)
+      return null
+    }
   }
 
   console.log('starting import')

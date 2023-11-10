@@ -56,7 +56,11 @@ export default () => {
       },
       find(metaSearch) {
         if(currentReference && metaSearch._refSearch) return currentReference
-        return expose
+        if(!currentReference && metaSearch._createIfNotSet) {
+          currentReferenceSet = _databases()
+          currentReference = currentReferenceSet.find(metaSearch)
+          return currentReference
+        }
       },
       getProperties() {
         return currentProperties
@@ -123,7 +127,7 @@ export default () => {
       find(metaSearch) {
         if('column' in metaSearch) {
           if(metaSearch.column in fields) {
-            return (fields[metaSearch.column]).find(metaSearch) || expose
+            return (fields[metaSearch.column]).find(metaSearch) || fields[metaSearch.column]
           }
           if(metaSearch._createIfNotSet) {
             return expose.setField(metaSearch.column)
@@ -168,7 +172,7 @@ export default () => {
             return (tables[metaSearch.table]).find(metaSearch) || expose
           }
           if(metaSearch._createIfNotSet) {
-            return expose.setTable(metaSearch.table)
+            return expose.setTable(metaSearch.table).find(metaSearch)
           }
           throw new Error(`Table ${metaSearch.table} was not yet defined in the template for database ${metaSearch.database}`)
         }
@@ -212,6 +216,9 @@ export default () => {
           if(metaSearch.database in databases) {
             return (databases[metaSearch.database]).find(metaSearch) || expose
           }
+          if(metaSearch._createIfNotSet) {
+            return expose.setDatabase(metaSearch.database).find(metaSearch)
+          }
           throw new Error(`Database ${metaSearch.database} was not yet defined in the template`)
         }
         throw new Error(`Database not defined in ${metaSearch}`)
@@ -219,6 +226,6 @@ export default () => {
     }
     return expose
   }
-
+  
   return _databases()
 } 

@@ -8,7 +8,7 @@ export default defineEventHandler(async event => {
     throw new Error('No import file detected')
   }
   
-  importer(importBody.props.importType, importBody.files.importFile)
+  return importer(importBody.props.importType, importBody.files.importFile)
 });
 
 

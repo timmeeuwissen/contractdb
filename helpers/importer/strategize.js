@@ -88,10 +88,10 @@ export default (importerType) => {
         }
         // determine which fields imply a foreign key
         else if(Array.isArray(mapDef.target)) {
-          for(let iRelationOrigin = 0; iRelationOrigin <= mapDef.target.length - 1; iRelationOrigin++) {
-            amendRelation(acc, srcKey, deconstructTarget(mapDef.target[0]), mapDef)
-            amendMapping(acc, srcKey, deconstructTarget(mapDef.target[1]), mapDef)
-          }
+          mapDef.target.slice(0,-1).forEach((target, index) => {
+            amendRelation(acc, srcKey, deconstructTarget(target), mapDef)
+            amendMapping(acc, srcKey, deconstructTarget(mapDef.target[index+1]), mapDef)            
+          })
         }
       }
 

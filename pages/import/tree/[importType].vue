@@ -40,7 +40,6 @@ v-row
     v-card
       v-card-title RDBMS Mapping
       v-card-text
-        span {{ openedPath }}
         tree(
           :tree-data="data.tree",
           :icon-map="iconMap"

@@ -11,22 +11,46 @@ export default (importType, fileDef) => {
 
   const records = [];
   const parser = parse(importConfig.parserConfig);
+
+  const fileStats = {
+    records: 0,
+    errors: [],
+  }
+  
+  let databaseStats;
   
   parser.on('readable', function(){
     let record;
     while ((record = parser.read()) !== null) {
       records.push(record);
+      fileStats.records++
     }
   });
 
   parser.on('error', function(err){
-    console.error(err.message);
+    fileStats.errors.push(err.message)
   });
 
   parser.on('end', function(){
-    execute(importType, records)
+    try {
+      databaseStats = {
+        status: 'success',
+        ...execute(importType, records)
+      }
+    }
+    catch(err) {
+      databaseStats = {
+        status: 'failed',
+        reason: err.message 
+      }
+    }
   });
 
   parser.write(fileDef.data)
   parser.end()
+
+  return {
+    fileStats,
+    databaseStats
+  }
 }

@@ -1,5 +1,5 @@
 <template lang="pug">
-ul.ml-7
+ul.ml-5 
   li(v-for="(child, index) in treeData" :key="child.title")
     v-icon(
       v-if="iconMap && (child.type in iconMap)"
