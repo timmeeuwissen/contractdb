@@ -1,75 +1,12 @@
-# Nuxt 3 Minimal Starter
+# Main projects within this project
 
-Look at the [Nuxt 3 documentation](https://nuxt.com/docs/getting-started/introduction) to learn more.
-
-## Setup
-
-Make sure to install the dependencies:
-
-```bash
-# npm
-npm install
-
-# pnpm
-pnpm install
-
-# yarn
-yarn install
-
-# bun
-bun install
-```
-
-## Development Server
-
-Start the development server on `http://localhost:3000`:
-
-```bash
-# npm
-npm run dev
-
-# pnpm
-pnpm run dev
-
-# yarn
-yarn dev
-
-# bun
-bun run dev
-```
-
-## Production
-
-Build the application for production:
-
-```bash
-# npm
-npm run build
-
-# pnpm
-pnpm run build
-
-# yarn
-yarn build
-
-# bun
-bun run build
-```
-
-Locally preview production build:
-
-```bash
-# npm
-npm run preview
-
-# pnpm
-pnpm run preview
-
-# yarn
-yarn preview
-
-# bun
-bun run preview
-```
-
-Check out the [deployment documentation](https://nuxt.com/docs/getting-started/deployment) for more information.
+- Exporting
+- Database explorer (SVG)
+- Be able to write and execute queries, interpret SQL syntax, respond with data in table
+- Mutations on data and removal of data
+- When removing, traverse the tree to understand the impact on the removal
+- Detail page find parent and child relations, show in separate windows
+- cluster fields based on descriptive properties in the db ([1.1] etc)
+- show views on the data in separate block under menu
+- ability to show graph on view with vue-morris https://github.com/bbonnin/vue-morris and raphaeljs https://dmitrybaranovskiy.github.io/raphael/
+- nullify relations when they are empty
