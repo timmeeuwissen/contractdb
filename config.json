@@ -126,5 +126,26 @@
         "SK": null
       }
     }
-  }
+  },
+  "graphs": [
+    { 
+      "title": "Contract Tendencies",
+      "type": "line-chart",
+      "description": "Shows the evolution per year per vendor",
+      "source": {
+        "type": "procedure",
+        "call": "graph_contract_tendency()"
+      },
+      "mapping": {
+        "xkey": "Year",
+        "ykeys": {
+          "method": "match",
+          "regex": "/.*OPEX|CAPEX.*/"
+        },
+        "grid": true,
+        "grid-text-weight": "bold",
+        "resize": true
+      }
+    }
+  ]
 }

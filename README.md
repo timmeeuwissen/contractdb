@@ -10,3 +10,6 @@
 - show views on the data in separate block under menu
 - ability to show graph on view with vue-morris https://github.com/bbonnin/vue-morris and raphaeljs https://dmitrybaranovskiy.github.io/raphael/
 - nullify relations when they are empty
+- log-in screen where the database credentials can be provided, and database is selected in dropdown when credentials are provided
+- user based access based on actual database users
+- write a code editor with e.g. https://codemirror.net/ to be able to write queries

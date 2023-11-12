@@ -23,6 +23,7 @@ const flagMap = [
 let typemap
 let uniques
 let tableDescriptions = {}
+let tableIndices = {}
 
 export const deconstructTarget = (targetString) => {
   // make sure we know the database, table and column
@@ -49,9 +50,9 @@ export const getType = intType => {
 }
 
 export const getFlags = flags => flagMap.reduce(
-    (acc, [flag, bitExpression]) => {
-      flags | bitExpression ? [...acc, flag] : acc
-    },
+    (acc, [flag, bitExpression]) => (
+      flags & bitExpression == bitExpression ? [...acc, flag] : acc
+      ),
     []
   )
 
@@ -230,7 +231,7 @@ export const get_tableDescription = async (database, table) => {
   if (table in tableDescriptions[database]) return tableDescriptions[database][table]
   
   const [records] = await connection().promise().query(
-    `describe ${database}.${table}`
+    `show full columns from ${database}.${table}`
   )
   
   tableDescriptions[database][table] = records.reduce(
@@ -240,3 +241,37 @@ export const get_tableDescription = async (database, table) => {
 
   return tableDescriptions[database][table]
 }
+
+export const get_tableIndices = async (database, table) => {
+  if (!(database in tableIndices)) tableIndices[database] = {}
+  if (table in tableIndices[database]) return tableIndices[database][table]
+  tableIndices = (await connection().promise().query(
+      `select * ` +
+      `from information_schema.KEY_COLUMN_USAGE ` +
+      `where TABLE_SCHEMA = '${database}' ` +
+      `order by TABLE_NAME, CONSTRAINT_NAME, ORDINAL_POSITION ` 
+    ))[0].reduce(
+      (acc, rec) => {
+        if(!(rec.TABLE_SCHEMA in acc)) 
+          acc[rec.TABLE_SCHEMA] = {}
+        if(!(rec.TABLE_NAME in acc[rec.TABLE_SCHEMA])) 
+          acc[rec.TABLE_SCHEMA][rec.TABLE_NAME] = {}
+        if(!(rec.CONSTRAINT_NAME in acc[rec.TABLE_SCHEMA][rec.TABLE_NAME])) 
+          acc[rec.TABLE_SCHEMA][rec.TABLE_NAME][rec.CONSTRAINT_NAME] = []
+        
+        acc[rec.TABLE_SCHEMA][rec.TABLE_NAME][rec.CONSTRAINT_NAME].push(rec)
+        return acc;
+      }, 
+      {}
+    )
+  return tableIndices[database][table]
+}
+
+export const get_views = database => 
+  connection().promise().query(`show full tables from ${database} where TABLE_TYPE like 'VIEW'`)
+
+export const get_tables = database => 
+  connection().promise().query(`show full tables from ${database} where TABLE_TYPE like '%TABLE'`)
+
+export const get_procedures = database => 
+  connection().promise().query(`show procedure status where Db = '${database}'`)

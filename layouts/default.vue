@@ -19,29 +19,23 @@ v-container
           v-model="locale"
           :items="locales"
         )
-      v-card
-        v-card-title Menu
+      v-card(
+        prepend-icon="mdi-dots-horizontal"
+        variant="tonal"
+        title="Menu"
+      )
         v-card-text
-          v-table
-            thead
-              tr
-                th Datasets
-            tbody
-              tr(v-for="table in tablesStore.tables.filter(table => table.inListing)")
-                td 
-                  NuxtLink(:to="`/table/${table.tableName}`") {{ table.tableName }}
-
+          | Select where you want to go
+      datasets-component
+      graphs-component
     v-col(cols="10").justify.pt-15
       slot
 </template>
 <script setup>
-import { useTablesStore } from '~/stores/tables'
 import { useDebugStore } from '~/stores/debug'
+import DatasetsComponent from '~/components/menu/datasets'
+import GraphsComponent from '~/components/menu/graphs'
 const { locale, locales } = useI18n()
 
 const debugStore = useDebugStore()
-const tablesStore = useTablesStore()
-
-tablesStore.fetchTables()
-
 </script>

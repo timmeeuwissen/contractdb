@@ -8,6 +8,11 @@ v-card
           v-icon(icon="mdi-database-import-outline")
         v-list-item-title Migration wizard
         v-list-item-subtitle Import and export data to and from your database
+      v-list-item(to="/debug/database" v-if="debugStore.active")
+        template(v-slot:prepend)
+          v-icon(icon="mdi-database")
+        v-list-item-title  [ debug ] Database
+        v-list-item-subtitle See the database from wich everything you see is derived
       v-list-item(to="/debug/config" v-if="debugStore.active")
         template(v-slot:prepend)
           v-icon(icon="mdi-code-json")

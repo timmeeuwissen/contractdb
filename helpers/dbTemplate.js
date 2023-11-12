@@ -149,7 +149,7 @@ export default () => {
         return tables[table]
       },
       async applyRecords(recordCb) {
-        Object.values(tables).forEach(table => table.applyRecords(recordCb))
+        return Object.values(tables).map(table => table.applyRecords(recordCb))
       },
       getTree(){
         return Object.entries(tables).reduce((acc, [table, records]) => ([
@@ -191,10 +191,7 @@ export default () => {
         return databases[database]
       },
       async applyRecords(recordCb) {
-        Object.values(databases).forEach(tables => {
-          tables.applyRecords(recordCb)
-        })
-        return expose
+        return Object.values(databases).map(async tables => await tables.applyRecords(recordCb))
       },
       getTree(){
         return Object.entries(databases).reduce((acc, [database, tables]) => ([

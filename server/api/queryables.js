@@ -1,10 +1,19 @@
 import config from '~/config.json'
 import connection from '~/helpers/connection'
+import { get_procedures, get_tables, get_views } from '~/helpers/dbSchema'
 import { get_stringsForTables } from '~/helpers/identify'
 
-const { connection: {database}, tableConfiguration } = config
-export default defineEventHandler(async event => {
-  const [records] = await connection().promise().query('show tables');
+const views = async database => {
+  const [records] = await get_views(database)
+  return records.reduce((acc, view) => {
+    view['Name'] = view[`Tables_in_${database}`];
+    delete view[`Tables_in_${database}`]
+    return [...acc, view]
+  }, [])
+}
+
+const tables = async database => {
+  const [records] = await get_tables(database);
   const tables = records.reduce(
     (acc, entry) => ([...acc, Object.values(entry)[0]]), 
     []
@@ -29,4 +38,13 @@ export default defineEventHandler(async event => {
         ])
     ,[]
   )
+}
+
+const { connection: {database}, tableConfiguration } = config
+export default defineEventHandler(async event => {
+  return {
+    tables: await tables(config.connection.database),
+    views: await views(config.connection.database),
+    procedures: (await get_procedures(config.connection.database))[0],
+  }
 })

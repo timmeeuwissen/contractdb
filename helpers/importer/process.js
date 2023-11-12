@@ -111,8 +111,6 @@ export const getTemplate = (importerType, methods) => {
       })
     }
 
-    console.log('prepped', preppedTemplate.toString())
-
     setupTemplate(
       preppedTemplate,
       srcKey
@@ -155,10 +153,13 @@ export const execute = async (importerType, importerRecords, methods) => {
     }
 
     if (result[0].affectedRows) {
-      databaseStats.totals.errors.push(error)
-      databaseStats.perTable[database][table].errors.push(error)
+      databaseStats.totals.update++
+      databaseStats.perTable[database][table].update++
     }
-    console.log(database, table, result, getFlags(result.serverStatus), getFlags(result.warningStatus))
+
+    databaseStats.totals.processed++
+    databaseStats.perTable[database][table].processed++
+    // console.log(database, table, result, getFlags(result.serverStatus), getFlags(result.warningStatus))
 
     return
   }
@@ -204,24 +205,25 @@ export const execute = async (importerType, importerRecords, methods) => {
     // each relevant sourcefield is mapped to a target field which is 
     // a reference to the layered structure within the dbTemplate
     Object.entries(keyToField).forEach(([srcKey, fieldTarget]) => {
-      allRecords.push(fieldTarget.applyValue(srcRecord[srcKey]))
+      fieldTarget.applyValue(srcRecord[srcKey])
     })
 
-    // trancerse the entire model, including foreign key constraints, and 
+    // traverse the entire model, including foreign key constraints, and 
     // use the callback to resolve what to do with the records.
-    template.applyRecords(recordCb)
+    allRecords.push(template.applyRecords(recordCb))
   })
 
-  Promise.all(allRecords)
-    .then(_values => {
-      console.log('committing input')
-      connection().commit()
-    })
-    .catch(error => {
-      console.log('rolling back')
-      connection().rollback()
-      throw error
-    })
-  console.log('import finished')
+  try {
+    await Promise.all(allRecords)
+    console.log('committing input')
+    connection().commit()
+  }
+  catch(err) {
+    console.log('rolling back', err.message)
+    connection().rollback()
+    throw err
+  }
 
+  console.log('import finished', databaseStats)
+  return databaseStats
 }
