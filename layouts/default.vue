@@ -2,7 +2,6 @@
 //- list all databases that are allowed to be showed here
 v-container
   v-navigation-drawer(
-    v-model="drawer"
     :rail="rail"
     permanent
     @click="rail = false"
@@ -38,7 +37,7 @@ v-container
     v-switch.mx-2(
       v-model="debugStore.active"
       color="primary"
-      :label="rail ? undefined : 'Debugging'"
+      :label="rail ? undefined : 'Advanced'"
     )
     v-select(
       v-if="!rail"
@@ -55,7 +54,6 @@ import DatasetsComponent from '~/components/menu/datasets'
 import GraphsComponent from '~/components/menu/graphs'
 import {ref} from 'vue'
 const { locale, locales } = useI18n()
-const drawer = ref(true)
 const rail = ref(true)
 const debugStore = useDebugStore()
 </script>

@@ -9,6 +9,6 @@ export default async (exportType) => {
   const importConfig = config.imports[exportType]
 
   const records = await get_data(exportType)
-  const gnerator = generate(importConfig.parserConfig).pipe(process.stdout);
+  const generator = generate(importConfig.parserConfig).pipe(process.stdout);
   
 }

@@ -32,7 +32,7 @@ v-card(prepend-icon="mdi-table" title="Table configuration")
           td.text-disabled(:colspan="columns.length" v-else)
             | There is no field information set for this table
 
-v-card(prepend-icon="mdi-database" title="Importers")
+v-card(prepend-icon="mdi-database" title="Import / Export")
   v-card-text
     v-data-table(
       :headers="importHeaders"
@@ -70,7 +70,7 @@ v-card(prepend-icon="mdi-database" title="Importers")
                     template(v-else) {{ fieldDef.method }}  
 
     v-list(lines="one")
-      v-list-item(to="/import")
+      v-list-item(to="/migrate")
         template(v-slot:prepend)
           v-icon(icon="mdi-database-import-outline")
         v-list-item-title Migration wizard
@@ -107,7 +107,7 @@ const importRows = Object.entries(imports).reduce(
       type,
       parserConfig,
       modelMap,
-      targUrl: `/import/tree/${importer}`
+      targUrl: `/migrate/tree/${importer}`
     }
   ]), 
   []
