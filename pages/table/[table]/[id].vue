@@ -75,9 +75,9 @@ v-form(
                   v-icon(v-bind="props" color="grey-lighten-1") mdi-help
 
     template.loading(v-else v-slot:text) Loading
-  | {{ referencedBy }}
+
   v-card(
-    v-if="referencedBy.length"
+    v-if="referencedBy && referencedBy.length"
     prepend-icon="mdi-human-male-girl"
     title="Required by"
   )
@@ -95,7 +95,7 @@ v-form(
           tr(v-for="reference in referencedBy") 
             td
               v-btn(
-                :to="`/table/${reference.type}/${reference._PK}`"
+                :to="`/table/${reference.Type}/${reference._PK}`"
                 variant="plain"
                 :icon="reference._tableIcon || 'mdi-pencil'"
               )
