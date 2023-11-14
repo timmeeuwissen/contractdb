@@ -33,6 +33,15 @@ const tables = async database => {
               && ('omitFromListing' in tableConfiguration[tableName])
               ? !tableConfiguration[tableName].omitFromListing
               : true,
+            icon: (tableName in tableConfiguration)
+              ? tableConfiguration[tableName].icon
+              : undefined,
+            title: (
+              (tableName in tableConfiguration)
+              && ('title' in tableConfiguration[tableName])
+            )
+              ? tableConfiguration[tableName].title
+              : tableName, 
             identifiedBy: tableIdentifiedBy[tableName]
           }
         ])

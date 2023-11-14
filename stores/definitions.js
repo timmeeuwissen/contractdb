@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
 
-export const useDebugDefinitionStore = defineStore('debugDefinitionsStore', {
+export const debugDefinitionStore = defineStore('definitionsStore', {
   state: () => ({
     perTable: {}
   }),

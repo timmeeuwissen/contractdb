@@ -42,7 +42,7 @@ v-container
               v-window-item(value="Columns")
                 table-columns(
                   v-model="tableModel"
-                  :debugDefinitionStore="debugDefinitionStore"
+                  :definitionStore="definitionStore"
                 )
               v-window-item(value="Indices")
                 | Indices
@@ -52,7 +52,7 @@ v-container
 <script setup>
 import { ref } from 'vue'
 import { useTablesStore } from '~/stores/tables'
-import { useDebugDefinitionStore } from '~/stores/debug/definitions'
+import { useDefinitionStore } from '~/stores/definitions'
 
 import DatabaseTables from '~/components/database/tables'
 import DatabaseViews from '~/components/database/views'
@@ -60,7 +60,7 @@ import DatabaseProcedures from '~/components/database/procedures'
 
 import TableColumns from '~/components/database/columns'
 
-const debugDefinitionStore = useDebugDefinitionStore()
+const definitionStore = useDefinitionStore()
 const tablesStore = useTablesStore()
 
 const tableModel = ref('')
@@ -69,8 +69,8 @@ const tableData = ref({})
 
 watch(tableModel, (table) => {
   if(table) {
-    debugDefinitionStore.fetchTableData(table)
-    tableData.value = debugDefinitionStore.tableData(table) 
+    definitionStore.fetchTableData(table)
+    tableData.value = definitionStore.tableData(table) 
   }
 })
 </script>

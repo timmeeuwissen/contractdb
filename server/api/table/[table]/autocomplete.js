@@ -1,7 +1,7 @@
 import connection from '~/helpers/connection'
 import config from '~/config.json'
 import { getAllPrimaryKeys, getConstraintsForTable } from '~/helpers/dbSchema'
-import { get_stringsForTables, extractValues, apply_recToIndentiedBy } from '~/helpers/identify';
+import { get_stringsForTables, extractValues, apply_recToIndentifyBy } from '~/helpers/identify';
 import { getType } from '~/helpers/dbSchema';
 
 // you provide the table you are at right now, 
@@ -35,7 +35,7 @@ export default defineEventHandler(async event => {
             ...tableAcc,
             {
               value: rec._PK,
-              title: apply_recToIndentiedBy(tableIdentifiedBy[relatedTable], rec)
+              title: apply_recToIndentifyBy(tableIdentifiedBy[relatedTable], rec)
             }
           ]), [])
       }

@@ -1,9 +1,9 @@
 <template lang="pug">
 | columns
-| {{ props.debugDefinitionStore.perTable }}
+| {{ props.definitionStore.perTable }}
 v-table(
   hover 
-  v-if="props.debugDefinitionStore.perTable && props.debugDefinitionStore.perTable.columns"
+  v-if="props.definitionStore.perTable && props.definitionStore.perTable.columns"
 )
 
   thead
@@ -18,7 +18,7 @@ v-table(
       th Privileges
       th Comment
   tbody
-    tr(v-for="column in props.debugDefinitionStore.perTable.columns")
+    tr(v-for="column in props.definitionStore.perTable.columns")
     th Field
       td {{ column.Type }}
       td {{ column.Collation }}
@@ -30,7 +30,7 @@ v-table(
       td {{ column.Comment }}
 </template>
 <script setup>
-const props = defineProps(['modelValue', 'debugDefinitionStore'])
+const props = defineProps(['modelValue', 'definitionStore'])
 
 const emit = defineEmits(['update:modelValue'])
 

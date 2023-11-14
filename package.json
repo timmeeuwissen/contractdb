@@ -26,6 +26,8 @@
     "sass": "^1.69.1",
     "vite-plugin-pug": "^0.3.2",
     "vite-plugin-vuetify": "^1.0.2",
+    "vue-lodash": "^2.1.2",
+    "vue-morris": "^1.1.0",
     "vuetify": "^3.4.0-alpha.1"
   }
 }

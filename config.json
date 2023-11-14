@@ -25,9 +25,35 @@
       "omitFromListing": true
     },
     "domains": {
-      "identifiedBy": "{{ domain }}"
+      "icon": "mdi-domain",
+      "identifiedBy": "{{ domain }}",
+      "title": "Domains"
+    },
+    "SDMers": {
+      "icon": "mdi-car-emergency",
+      "title": "SDM'ers"
+    },
+    "forecasts": {
+      "icon": "mdi-calendar-question",
+      "title": "Forecasts"
+    },
+    "stakeholders": {
+      "icon": "mdi-tie",
+      "title": "Stakeholders"
+    },
+    "vendors": {
+      "icon": "mdi-handshake-outline",
+      "title": "Vendors"
+    },
+    "budgetType": {
+      "omitFromListing": true
+    },
+    "contractForecast": {
+      "omitFromListing": true
     },
     "contracts": {
+      "icon": "mdi-file-sign",
+      "title": "Contracts",
       "fields": {
         "contractStartDate": {
           "dateDelimiter": {
@@ -129,7 +155,7 @@
   },
   "graphs": [
     { 
-      "title": "Contract Tendencies",
+      "title": "Contract Tendencies (SPC)",
       "type": "line-chart",
       "description": "Shows the evolution per year per vendor",
       "source": {
@@ -146,6 +172,26 @@
         "grid-text-weight": "bold",
         "resize": true
       }
+    },
+    { 
+      "title": "Contract Tendencies (PVT)",
+      "type": "line-chart",
+      "description": "Shows the evolution per year per vendor",
+      "source": {
+        "type": "view",
+        "view": "graph_contract_tendency()"
+      },
+      "mapping": {
+        "xkey": "Year",
+        "ykeys": {
+          "method": "match",
+          "regex": "/.*OPEX|CAPEX.*/"
+        },
+        "grid": true,
+        "grid-text-weight": "bold",
+        "resize": true
+      }
     }
+
   ]
 }

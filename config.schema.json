@@ -1,0 +1,246 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "config.schema.json",
+  "title": "Config",
+  "description": "Definition of the configuration of the program",
+  "type": "object",
+  "definitions": {
+    "tableField": {
+      "type": "object",
+      "properties": {
+        "dateDelimiter": {
+          "type": "object",
+          "properties": {
+            "max": { "type": "object", "properties": { "target": { "type": "string" } } }
+          }
+        }
+      }
+    },
+  "properties": {
+    "connection": {
+      "type": "object",
+      "properties": {
+        "host": { "type": "string" },
+        "user": { "type": "string" },
+        "password": { "type": "string" },
+        "database": { "type": "string" }
+      },
+      "required": ["host", "user", "password", "database"]
+    },
+    "tableConfiguration": {
+      "type": "object",
+      "properties": {
+        "contractForecastRemarks": { "type": "object", "properties": { "omitFromListing": { "type": "boolean" } } },
+        "billingSystems": { "type": "object", "properties": { "omitFromListing": { "type": "boolean" } } },
+        "costDrivers": { "type": "object", "properties": { "omitFromListing": { "type": "boolean" } } },
+        "ITVMCategories": { "type": "object", "properties": { "omitFromListing": { "type": "boolean" } } },
+        "ITVMers": { "type": "object", "properties": { "omitFromListing": { "type": "boolean" } } },
+        "SDMErs": { "type": "object", "properties": { "omitFromListing": { "type": "boolean" } } },
+        "domains": {
+          "type": "object",
+          "properties": {
+            "icon": { "type": "string" },
+            "identifiedBy": { "type": "string" }
+          },
+          "required": ["icon", "identifiedBy"]
+        },
+        "SDMers": { "type": "object", "properties": { "icon": { "type": "string" } } },
+        "forecasts": { "type": "object", "properties": { "icon": { "type": "string" } } },
+        "stakeholders": { "type": "object", "properties": { "icon": { "type": "string" } } },
+        "vendors": { "type": "object", "properties": { "icon": { "type": "string" } } },
+        "contracts": {
+          "type": "object",
+          "properties": {
+            "icon": { "type": "string" },
+            "fields": {
+              "type": "object",
+              "properties": {
+                "contractStartDate": {
+                  "type": "object",
+                  "properties": {
+                    "dateDelimiter": {
+                      "type": "object",
+                      "properties": {
+                        "max": { "type": "object", "properties": { "target": { "type": "string" } } }
+                      }
+                    }
+                  }
+                },
+                "contractEndDate": {
+                  "type": "object",
+                  "properties": {
+                    "dateDelimiter": {
+                      "type": "object",
+                      "properties": {
+                        "min": { "type": "object", "properties": { "target": { "type": "string" } } }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "imports": {
+      "type": "object",
+      "properties": {
+        "vendormanagement": {
+          "type": "object",
+          "properties": {
+            "type": { "type": "string" },
+            "parserConfig": {
+              "type": "object",
+              "properties": {
+                "delimiter": { "type": "string" },
+                "escape": { "type": "string" },
+                "quote": { "type": "string" },
+                "columns": { "type": "boolean" }
+              }
+            },
+            "modelMap": {
+              "type": "object",
+              "properties": {
+                "Id": {
+                  "type": "object",
+                  "properties": {
+                    "method": { "type": "string" },
+                    "args": {
+                      "type": "object",
+                      "properties": { "pattern": { "type": "string" } }
+                    },
+                    "target": { "type": "string" }
+                  }
+                },
+                "xECM code": { "type": "null" },
+                "Budget Type": {
+                  "type": "object",
+                  "properties": {
+                    "target": { "type": "array", "items": { "type": "string" } }
+                  }
+                },
+                "Active / Inactive": {
+                  "type": "object",
+                  "properties": {
+                    "target": { "type": "string" },
+                    "method": { "type": "string" },
+                    "args": {
+                      "type": "object",
+                      "properties": {
+                        "default": { "type": "boolean" },
+                        "valuesToTrue": { "type": "array", "items": { "type": "string" } },
+                        "valuesToFalse": { "type": "array", "items": { "type": "string" } }
+                      }
+                    }
+                  }
+                },
+                "Vendor Entity Name": {
+                  "type": "object",
+                  "properties": { "target": { "type": "array", "items": { "type": "string" } } }
+                },
+                "Underlying vendor": {
+                  "type": "object",
+                  "properties": {
+                    "method": { "type": "string" },
+                    "args": {
+                      "type": "object",
+                      "properties": {
+                        "condition": { "type": "string" },
+                        "targets": { "type": "array", "items": { "type": "string" } }
+                      }
+                    },
+                    "target": { "type": "array", "items": { "type": "string" } }
+                  }
+                },
+                "Ariba / \n Readsoft": { "type": "null" },
+                "Ariba PR/PO": { "type": "null" },
+                "Date Next PO available": { "type": "null" },
+                "Domain": {
+                  "type": "object",
+                  "properties": { "target": { "type": "array", "items": { "type": "string" } } }
+                },
+                "ITVM Category": { "type": "null" },
+                "ITVM Sub Category": { "type": "null" },
+                "Contract Scope": { "type": "null" },
+                "Contract cost drivers": { "type": "null" },
+                "notice period (Months)": { "type": "null" },
+                "Contract Start date": { "type": "null" },
+                "Contract end date": { "type": "null" },
+                "Demand review date": { "type": "null" },
+                "SDM-er": { "type": "null" },
+                "ITVM": { "type": "null" },
+                "Product Stakeholder": { "type": "null" },
+                "Invoice code": { "type": "null" },
+                "YP 2023": { "type": "null" },
+                "YP 2023 CAPEX": { "type": "null" },
+                "Actuals\n OPEX": { "type": "null" },
+                "Actuals vs YP\n OPEX": { "type": "null" },
+                "Actuals CAPEX": { "type": "null" },
+                "LE Actual": { "type": "null" },
+                "LE1 2023": { "type": "null" },
+                "LE1 CAPEX": { "type": "null" },
+                "LE1 remark": { "type": "null" },
+                "LE remark": { "type": "null" },
+                "YP 2023 Remark": { "type": "null" },
+                "FC OPEX (calc)": { "type": "null" },
+                "Cost KPI": { "type": "null" },
+                "Current Forecast": { "type": "null" },
+                "∆": { "type": "null" },
+                "YP 2024 OPEX (Draft)": { "type": "null" },
+                "YP 2024 CAPEX (Draft)": { "type": "null" },
+                "YP 2024 (Draft) Remark": { "type": "null" },
+                "YP 2024 OPEX delta": { "type": "null" },
+                "YP 2024 Explanation": { "type": "null" },
+                "SK": { "type": "null" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "graphs": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "title": { "type": "string" },
+          "type": { "type": "string" },
+          "description": { "type": "string" },
+          "source": {
+            "type": "object",
+            "properties": {
+              "type": { "type": "string" },
+              "call": { "type": "string" },
+              "view": { "type": "string" }
+            },
+            "required": ["type"],
+            "oneOf": [
+              { "required": ["call"] },
+              { "required": ["view"] }
+            ]
+          },
+          "mapping": {
+            "type": "object",
+            "properties": {
+              "xkey": { "type": "string" },
+              "ykeys": {
+                "type": "object",
+                "properties": {
+                  "method": { "type": "string" },
+                  "regex": { "type": "string" }
+                }
+              },
+              "grid": { "type": "boolean" },
+              "grid-text-weight": { "type": "string" },
+              "resize": { "type": "boolean" }
+            }
+          }
+        },
+        "required": ["title", "type", "description", "source", "mapping"]
+      }
+    }
+  },
+  "required": ["connection", "tableConfiguration", "imports", "graphs"]
+}
+               

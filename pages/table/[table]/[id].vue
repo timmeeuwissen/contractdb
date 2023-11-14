@@ -2,7 +2,11 @@
 v-card(
   variant="tonal"
 )
-  template(v-slot:title) {{ table }}: {{ id }}
+  template(
+    v-slot:title
+  ) 
+    v-icon.mr-2(:icon="title.icon" v-if="title.icon")
+    | {{ title.label }}
 v-form(
   @prevent.default="updateRecord"
   ref="dataForm"
@@ -71,12 +75,32 @@ v-form(
                   v-icon(v-bind="props" color="grey-lighten-1") mdi-help
 
     template.loading(v-else v-slot:text) Loading
+  | {{ referencedBy }}
   v-card(
+    v-if="referencedBy.length"
     prepend-icon="mdi-human-male-girl"
     title="Required by"
-    color="error"
   )
-    v-card-text TODO : Present the relations to this record
+    v-card-text
+      v-table(
+        hover
+        density="compact"
+      )
+        thead 
+          tr 
+            th 
+            th Type
+            th Identified by
+        tbody 
+          tr(v-for="reference in referencedBy") 
+            td
+              v-btn(
+                :to="`/table/${reference.type}/${reference._PK}`"
+                variant="plain"
+                :icon="reference._tableIcon || 'mdi-pencil'"
+              )
+            td {{ reference._tableTitle}}
+            td {{ reference.Ident }}
 </template>
 <script>
 import { useRecordsStore } from '~/stores/records'
@@ -101,7 +125,7 @@ export default {
       debugStore,
       autocompleteStore,
       table,
-      id
+      id,
     }
   },
   computed: {
@@ -110,6 +134,25 @@ export default {
     },
     definition() {
       return this.recordsStore.definition(this.table)
+    },
+    referencedBy(){
+      return this.recordsStore.referencedBy(this.table)
+    },
+    title() {
+      const record = this.recordsStore.record(this.table, this.id)
+      if (!record) return {
+        icon: undefined,
+        label: undefined
+      }
+      const def = this.recordsStore.definition(this.table)
+      return {
+        icon: def._tableIcon,
+        label: def._tableTitle + ': '
+          + def._identifiedBy.replaceAll(
+            /\{\{\s?(.*?)\s\}\}/g, 
+            (_match, field) => record[field]
+          )  
+      }
     }
   },
   methods: {

@@ -13,3 +13,8 @@
 - log-in screen where the database credentials can be provided, and database is selected in dropdown when credentials are provided
 - user based access based on actual database users
 - write a code editor with e.g. https://codemirror.net/ to be able to write queries
+- have a schema definition for the configuration
+- user management
+- creation of tables
+- creation of tables with AI based on a case
+- single line creation and removal in a table (small tables like todo)

@@ -98,7 +98,7 @@ export default defineEventHandler(async event => {
       return {
         headers, 
         records,
-        tableConfiguration: config[tableName],
+        tableConfiguration: config.tableConfiguration[tableName],
         foreignKeys,
         identifiedPerField
       }

@@ -1,9 +1,17 @@
 <template lang="pug">
+v-dialog(v-model="dialogDelete" max-width="500px")
+  v-card
+    v-card-title.text-h5 Are you sure you want to remove this item
+    v-card-actions
+      v-spacer
+      v-btn(variant="text" density="compact" @click="closeDelete()") Cancel
+      v-btn(variant="text" density="compact" @click="confirmDelete()") OK
+
 v-card(v-if="data")
   //- skipping all keys prefixed with underscore
   //- those are informationsets targetet for visual aid
   v-data-table.tableList(
-    :headers="data.headers"
+    :headers="data.headers.map(header => ({...header, align: !(header.title in columnChecked) ? 'd-none': header.align }))"
     :items="data.records"
     item-value="_PK"
     show-select
@@ -11,18 +19,55 @@ v-card(v-if="data")
     hover
     v-model="selectedRecords"
   )
-    template(v-slot:top)
+    template(v-slot:top="{ columns }")
       v-toolbar(flat)
-        v-toolbar-title Records from {{ route.params.table }}
+        v-toolbar-title
+          v-icon(
+            :icon="data.tableConfiguration.icon"
+          )
+          span.ml-3 Records from {{ data.tableConfiguration.title || route.params.table }}
         v-divider.mx-4(inset vertical)
-        v-spacer
-        v-dialog(v-model="dialogDelete" max-width="500px")
-          v-card
-            v-card-title.text-h5 Are you sure you want to remove this item
-            v-card-actions
-              v-spacer
-              v-btn(variant="text" density="compact" @click="closeDelete()") Cancel
-              v-btn(variant="text" density="compact" @click="confirmDelete()") OK
+        v-menu(
+          :close-on-content-click="false"
+          location="start"
+          density="compact"
+        )
+          template(
+            v-slot:activator="{ props: menu }"
+          )
+            v-tooltip( 
+              location="top"
+            )
+              template( 
+                v-slot:activator="{ props: tooltip }"
+              )  
+                v-btn(
+                  icon="mdi-checkbox-marked-circle-minus-outline"
+                  v-bind="{...menu, ...tooltip}"
+                ) 
+              span Select which columns you want to see
+          v-list(
+            density="compact"
+          )
+            v-form(
+              @prevent.default="updateColumns"    
+            )
+              v-list-item.text-no-wrap(
+                draggable
+                v-for="(column, index) in columnOrder.length? columnOrder : columns.reduce((acc, col) => ([...acc, col.title || undefined]), [])"
+                :key="index"
+              )
+                input(
+                  v-model="columnOrder"
+                  type="hidden"
+                )
+                v-checkbox(
+                  prepend-icon="mdi-drag-horizontal"
+                  :label="column"
+                  :v-model="columnChecked"
+                  density="compact"
+                  hide-details
+                )
               
     //- todo : translate header columns
     template(
@@ -38,19 +83,18 @@ v-card(v-if="data")
       template(
         v-if="def.key == 'actions'"
       )
-        v-row
-          v-btn(
-            icon="mdi-text-box-edit-outline" 
-            density="compact" 
-            variant="plain"
-            :to="`/table/${route.params.table}/${item.raw._PK}`"
-          ) 
-          v-btn(
-            icon="mdi-delete-outline" 
-            density="compact" 
-            variant="plain"
-            @click="deleteItem(item)"
-          )
+        v-btn(
+          icon="mdi-text-box-edit-outline" 
+          density="compact" 
+          variant="plain"
+          :to="`/table/${route.params.table}/${item.raw._PK}`"
+        ) 
+        v-btn(
+          icon="mdi-delete-outline" 
+          density="compact" 
+          variant="plain"
+          @click="deleteItem(item)"
+        )
       
       //- a column which refers to an external record
       template(
@@ -92,6 +136,8 @@ const {data} = useFetch(`/api/table/${route.params.table}`, {query: {format: 'ui
 const dialogDelete = ref(false)
 const currentItem = ref({})
 const selectedRecords = ref([])
+const columnOrder = ref([])
+const columnChecked = ref([])
 
 watch(currentItem, (val) => { val || this.closeDelete })
 

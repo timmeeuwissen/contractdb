@@ -3,7 +3,8 @@ import { defineStore } from 'pinia'
 export const useRecordsStore = defineStore('recordsStore', {
   state: () => ({
     records: {},
-    definitions: {}
+    definitions: {},
+    relatingRecords: {}
   }),
   actions: {
     // todo: enable fetching within another database
@@ -16,6 +17,9 @@ export const useRecordsStore = defineStore('recordsStore', {
       }
       if (!(table in this.definitions)) {
         this.definitions[table] = response.data.value.definitions
+      }
+      if (!(table in this.relatingRecords)) {
+        this.relatingRecords[table] = response.data.value.relatingRecords
       }
       this.records[table][response.data.value.record[response.data.value.primaryKey]] = 
         response.data.value.record
@@ -34,6 +38,14 @@ export const useRecordsStore = defineStore('recordsStore', {
       return (table) => {
         if (state.definitions[table]) {
           return state.definitions[table]
+        }
+        return undefined
+      }
+    },
+    referencedBy: state => {
+      return (table) => {
+        if (state.relatingRecords[table]) {
+          return state.relatingRecords[table]
         }
         return undefined
       }
