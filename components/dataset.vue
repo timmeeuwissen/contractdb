@@ -7,6 +7,21 @@ v-dialog(v-model="dialogDelete" max-width="500px")
       v-btn(variant="text" density="compact" @click="closeDelete()") Cancel
       v-btn(variant="text" density="compact" @click="confirmDelete()") OK
 
+v-dialog(v-model="dialogExport" max-width="500px")
+  v-card
+    v-card-title.text-h5 Are you sure you want to export?
+    v-card-text 
+      | This could take a while... But if you are certain of it, you might as well 
+      | select the format in which you want to export it. Please notice that we will 
+      | not limit the records to any filters you've possibly applied.
+      v-radio-group(column v-model="exportFormat")
+        v-radio(label="CSV" value="CSV")
+        v-radio(label="JSON" value="JSON")
+    v-card-actions
+      v-spacer
+      v-btn(variant="text" density="compact" @click="closeExport()") Cancel
+      v-btn(variant="text" density="compact" download :to="`/api/export/${props.type}/${props.target}`" @click="confirmExport()") OK
+
 v-card(v-if="dataReady")
   //- skipping all keys prefixed with underscore
   //- those are informationsets targetet for visual aid
@@ -27,6 +42,18 @@ v-card(v-if="dataReady")
           )
           span.ml-3 Records from {{ props.tableConfiguration.title || props.target }}
         v-divider.mx-4(inset vertical)
+        v-tooltip( 
+          location="top"
+        )
+          template( 
+            v-slot:activator="{ props: tooltip }"
+          )  
+            v-btn(
+              icon="mdi-export"
+              v-bind="{...tooltip}"
+            ) 
+          span Export this data
+
         v-menu(
           :close-on-content-click="false"
           location="start"
@@ -144,6 +171,9 @@ const selectedRecords = ref([])
 const columnOrder = ref({})
 const columnChecked = ref({})
 
+const dialogExport = ref(false)
+const exportFormat = ref('CSV')
+
 const dataReady = ref(false)
 Promise.resolve(props.records).then(()=>{ dataReady.value=true })
 
@@ -154,6 +184,7 @@ watch(props.headers, (newVal) => {
 
 watch(currentItem, (val) => { val || this.closeDelete })
 
+// deleting
 const deleteItem = (item) => {
   currentItem.value = item
   dialogDelete.value = true
@@ -166,6 +197,18 @@ const closeDelete = () => {
 const confirmDelete = () => {
   closeDelete()
   emit('delete', currentItem)
+}
+
+// exporting
+const openExport = () => {
+  dialogExport.value = true
+}
+
+const closeExport = () => {
+  dialogExport.value = false
+}
+const confirmExport = () => {
+  closeExport()
 }
 
 </script>
