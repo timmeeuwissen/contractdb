@@ -1,6 +1,6 @@
 <template lang="pug">
 v-list(
-  v-if="tablesStore.tables"
+  v-if="queryablesStore.tables"
   density="compact"
   nav
 ) 
@@ -11,7 +11,7 @@ v-list(
     prepend-icon="mdi-table"
   )
   v-list-item(
-    v-for="table in tablesStore.tables.filter(table => table.inListing && (!props.rail || (props.rail && table.icon)))"
+    v-for="table in queryablesStore.tables.filter(table => table.inListing && (!props.rail || (props.rail && table.icon)))"
     :to="`/table/${table.tableName}`"
     :prepend-icon="table.icon"
     link
@@ -19,8 +19,8 @@ v-list(
   ) 
 </template>
 <script setup>
-import { useTablesStore } from '~/stores/tables'
-const tablesStore = useTablesStore()
+import { useQueryablesStore } from '~/stores/tables'
+const queryablesStore = useQueryablesStore()
 const props = defineProps(['rail'])
-tablesStore.fetchTables()
+queryablesStore.fetchTables()
 </script>

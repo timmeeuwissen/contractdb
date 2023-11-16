@@ -7,7 +7,7 @@ v-card(prepend-icon="mdi-table" title="Table configuration")
   v-card-text
     v-data-table(
       :headers="tableConfHeaders"
-      :items="tablesStore.tables"
+      :items="queryablesStore.tables"
       item-value="tableName"
       show-expand
       hover
@@ -82,9 +82,9 @@ v-card(prepend-icon="mdi-database" title="Import / Export")
 // todo : shield database information
 import { acceptHMRUpdate } from 'pinia';
 import { tableConfiguration, imports } from '~/config.json'
-import { useTablesStore } from '~/stores/tables'
+import { useQueryablesStore } from '~/stores/tables'
 
-const tablesStore = useTablesStore()
+const queryablesStore = useQueryablesStore()
 
 // table config
 const tableConfHeaders = [

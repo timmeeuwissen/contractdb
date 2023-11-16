@@ -4,7 +4,7 @@ v-table
     tr
       th All Tables
   tbody
-    tr(v-for="table in props.tablesStore.tables")
+    tr(v-for="table in props.queryablesStore.tables")
       td 
         v-btn(
           variant="plain" 
@@ -13,8 +13,8 @@ v-table
         ) {{ table.tableName }}
 </template>
 <script setup>
-const props = defineProps(['modelValue', 'tablesStore'])
-const emit = defineEmits(['update:modelValue'])
+const props = defineProps(['modelValue', 'queryablesStore'])
+const emit = defineEmits(['clicked:modelValue'])
 
 const tableModel = computed({
   get() {

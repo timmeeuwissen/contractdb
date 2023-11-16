@@ -6,15 +6,15 @@ v-container
       title="Tables"
     )
       database-tables(
-        :tablesStore="tablesStore"
+        :queryablesStore="queryablesStore"
         v-model="tableModel"
       )
       database-views(
-        :tablesStore="tablesStore"
+        :queryablesStore="queryablesStore"
         v-model="tableModel"
       )
       database-procedures(
-        :tablesStore="tablesStore"
+        :queryablesStore="queryablesStore"
       )
   v-col(cols="6")
     | Selected Table: {{ tableModel }}
@@ -51,7 +51,7 @@ v-container
 </template>
 <script setup>
 import { ref } from 'vue'
-import { useTablesStore } from '~/stores/tables'
+import { useQueryablesStore } from '~/stores/tables'
 import { useDefinitionStore } from '~/stores/definitions'
 
 import DatabaseTables from '~/components/database/tables'
@@ -61,7 +61,7 @@ import DatabaseProcedures from '~/components/database/procedures'
 import TableColumns from '~/components/database/columns'
 
 const definitionStore = useDefinitionStore()
-const tablesStore = useTablesStore()
+const queryablesStore = useQueryablesStore()
 
 const tableModel = ref('')
 const showTab = ref('')

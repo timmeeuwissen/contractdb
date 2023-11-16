@@ -4,7 +4,7 @@ v-table
     tr
       th All Procedures
   tbody
-    tr(v-for="procedure in props.tablesStore.procedures")
+    tr(v-for="procedure in props.queryablesStore.procedures")
       td 
         v-btn(
           variant="plain" 
@@ -12,5 +12,5 @@ v-table
         ) {{ procedure.Name }}
   </template>
   <script setup>
-  const props = defineProps(['tablesStore'])
+  const props = defineProps(['queryablesStore'])
   </script>

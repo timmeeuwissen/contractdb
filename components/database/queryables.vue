@@ -1,7 +1,7 @@
 <template lang="pug">
 v-card(
   prepend-icon="mdi-table-arrow-right"
-  title="Download a queryable into a CSV"
+  :title="props.title"
 )
   v-card-text(density="compact")
     v-list(density="compact" v-if="queryablesStore.tables.length")
@@ -12,6 +12,7 @@ v-card(
           prepend-icon="mdi-table"
           variant="plain" 
           density="compact"
+          @click="emit('clicked:queryable', {type: 'table', name: table.tableName, props: table})"
         ) {{ table.tableName }}
         
     v-list(density="compact" v-if="queryablesStore.views.length")
@@ -21,6 +22,7 @@ v-card(
           v-for="view in queryablesStore.views"
           prepend-icon="mdi-database-eye"
           variant="plain" 
+          @click="emit('clicked:queryable', {type: 'view', name: view.Name, props: view})"
           density="compact"
         ) {{ view.Name }}
 
@@ -32,10 +34,13 @@ v-card(
           prepend-icon="mdi-xml"
           variant="plain" 
           density="compact"
+          @click="emit('clicked:queryable', {type: 'procedure', name: procedure.Name, props: procedure})"
         ) {{ procedure.Name }}
 </template>
 <script setup>
-import {useTablesStore} from '~/stores/tables'
-const queryablesStore = useTablesStore()
+import {useQueryablesStore} from '~/stores/tables'
+const queryablesStore = useQueryablesStore()
 queryablesStore.fetchTables()
+const emit = defineEmits(['clicked:queryable'])
+const props = defineProps(['title'])
 </script>

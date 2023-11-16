@@ -49,25 +49,22 @@ v-card(v-if="data")
           v-list(
             density="compact"
           )
-            v-form(
-              @prevent.default="updateColumns"    
+            v-list-item.text-no-wrap(
+              draggable
+              v-for="(column, index) in columnOrder.length"
+              :key="index"
             )
-              v-list-item.text-no-wrap(
-                draggable
-                v-for="(column, index) in columnOrder.length? columnOrder : columns.reduce((acc, col) => ([...acc, col.title || undefined]), [])"
-                :key="index"
+              input(
+                v-model="columnOrder"
+                type="hidden"
               )
-                input(
-                  v-model="columnOrder"
-                  type="hidden"
-                )
-                v-checkbox(
-                  prepend-icon="mdi-drag-horizontal"
-                  :label="column"
-                  :v-model="columnChecked"
-                  density="compact"
-                  hide-details
-                )
+              v-checkbox(
+                prepend-icon="mdi-drag-horizontal"
+                :label="column"
+                :v-model="columnChecked[column]"
+                density="compact"
+                hide-details
+              )
               
     //- todo : translate header columns
     template(
@@ -136,8 +133,12 @@ const {data} = useFetch(`/api/table/${route.params.table}`, {query: {format: 'ui
 const dialogDelete = ref(false)
 const currentItem = ref({})
 const selectedRecords = ref([])
-const columnOrder = ref([])
-const columnChecked = ref([])
+const columnOrder = ref({})
+const columnChecked = ref({})
+watch(data.headers, (newVal) => {
+  columnChecked.value = newVal.reduce((acc, header) => ({...acc, [header.title]: true}), {})
+  columnOrder.value = newVal.map(header => header.title)
+})
 
 watch(currentItem, (val) => { val || this.closeDelete })
 

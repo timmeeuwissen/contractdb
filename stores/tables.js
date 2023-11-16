@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
 
-export const useTablesStore = defineStore('tablesStore', {
+export const useQueryablesStore = defineStore('queryablesStore', {
   state: () => ({
     tables: [],
     views: [],
