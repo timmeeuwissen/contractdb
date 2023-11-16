@@ -1,0 +1,1 @@
+export const forward = (value, args) => String(value).split(args.pattern)

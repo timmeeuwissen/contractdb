@@ -152,6 +152,21 @@
         "SK": null
       }
     }
+  },  
+  "API": {
+    "vendors": {
+      "output": {
+        "type": "JSON"
+      },
+      "modelMap": {
+        "Vendor Name": { 
+          "target": ["vendors.name"] 
+        },
+        "Parent Vendor Name": { 
+          "target": ["vendors.parentVendorId", "vendors.name"] 
+        }
+      }
+    }
   },
   "graphs": [
     { 

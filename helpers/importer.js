@@ -35,7 +35,7 @@ export default (importType, fileDef) => {
     try {
       databaseStats = {
         status: 'success',
-        ...execute(importType, records)
+        ...execute(config.imports[importType], records)
       }
     }
     catch(err) {

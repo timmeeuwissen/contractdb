@@ -1,5 +1,5 @@
 import config from '~/config.json'
-import { deconstructTarget } from '../dbSchema'
+import { deconstructTarget } from './dbSchema'
 // strategize groups actions in a certain way so that they can be traversed 
 // more easily
 
@@ -66,13 +66,8 @@ const amendMethod = (acc, srcKey, _target, mapConf) => {
   )
 }
 
-export default (importerType) => {
-  if (!(importerType in config.imports)) throw new Error('ImporterType nonexistent')
-  if (!('modelMap' in config.imports[importerType])) throw new Error('ImporterType missing mapping?')
-  
-  const mapping = config.imports[importerType].modelMap;
-
-  const response = Object.entries(mapping).reduce(
+export default (mapDef) => {  
+  const response = Object.entries(mapDef).reduce(
     (acc, [srcKey, mapDef]) => {
       // When there's no map definition, we skip the field
       if(!mapDef) {

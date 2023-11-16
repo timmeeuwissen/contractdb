@@ -1,4 +1,4 @@
-import { getTemplate } from '~/helpers/importer/process'
+import { get_template } from '~/helpers/modelMapper'
 import config from '~/config.json'
 import { get_tableDescription } from '~/helpers/dbSchema';
 
@@ -7,7 +7,7 @@ export default defineEventHandler( async event => {
     throw new Error('No import file detected')
   }
   const importerType = event.context.params.filetype
-  const { template, keyToField } = getTemplate(importerType)
+  const { template, keyToField } = get_template(config.imports[importerType].modelMap)
   const keysToField = await Object.entries(config.imports[importerType].modelMap).reduce(
     async (acc, [key, fieldConfig]) => 
       {

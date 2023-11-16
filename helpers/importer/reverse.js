@@ -1,4 +1,4 @@
-import { getTemplate } from './process'
+import { get_template } from '../modelMapper'
 import { getAllConstraints } from '../dbSchema'
 import connection from '../connection'
 import { Exception } from 'sass'
@@ -21,8 +21,8 @@ const defaultMethods = {
   }
 }
 
-export const get_query = async (importerType, methods) => {
-  const { template, _keyToField } = getTemplate(importerType, methods)
+export const get_query = async (mapDef, methods) => {
+  const { template, _keyToField } = get_template(mapDef, methods)
   const tree = template.getTree()
   const allConstraints = await getAllConstraints()
 
