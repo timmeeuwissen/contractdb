@@ -10,7 +10,7 @@ dataset-component(
 )
 </template>
 <script setup>
-import DatasetComponent from '~/components/dataSet.vue'
+import DatasetComponent from '~/components/dataset'
 
 const route = useRoute()
 const {data} = await useFetch(`/api/table/${route.params.table}`, {query: {format: 'ui'}})

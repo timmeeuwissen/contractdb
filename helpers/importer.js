@@ -2,6 +2,7 @@ import { parse } from 'csv'
 import config from '~/config.json'
 import { execute } from './importer/process'
 
+// todo : convert to formatting helper, and have processing as a callback on iterator
 export default (importType, fileDef) => {
   console.log('starting to import ', importType)
   if (!(importType in config.imports)) throw new Error(`unknown importType ${importType}`)

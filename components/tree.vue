@@ -40,9 +40,9 @@ const toggle = async (index, state = undefined) => {
 }
 
 const openDeeper = ref([])
-const updateProps = (props) => {
-  if (Array.isArray(props.openedPath) && props.openedPath.length) {
-    const [openIdx, ...rest] = Object.values(props.openedPath)
+const updateProps = (openedPath) => {
+  if (Array.isArray(openedPath) && openedPath.length) {
+    const [openIdx, ...rest] = Object.values(openedPath)
     toggle(openIdx, true)
     rest.forEach((v,i) => openDeeper.value[i] = v)
     if (!rest.length){
@@ -53,7 +53,7 @@ const updateProps = (props) => {
 }
 
 updateProps(props)
-watch(props, (newVal) => {newVal && updateProps(newVal)})
+watch(props.openedPath, (newVal) => {newVal && updateProps(newVal)})
 
 </script>
 <style lang="sass" scoped>

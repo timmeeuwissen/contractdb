@@ -20,7 +20,13 @@ v-dialog(v-model="dialogExport" max-width="500px")
     v-card-actions
       v-spacer
       v-btn(variant="text" density="compact" @click="closeExport()") Cancel
-      v-btn(variant="text" density="compact" download :to="`/api/export/${props.type}/${props.target}`" @click="confirmExport()") OK
+      v-btn(
+        variant="text" 
+        density="compact" 
+        :download="`${props.target}.${(new Date()).toISOString().split('T')[0]}.${exportFormat.toLowerCase()}`" 
+        :href="`/api/export/${props.type}/${props.target}?format=${exportFormat}`" 
+        @click="confirmExport()"
+      ) Export
 
 v-card(v-if="dataReady")
   //- skipping all keys prefixed with underscore
@@ -51,6 +57,7 @@ v-card(v-if="dataReady")
             v-btn(
               icon="mdi-export"
               v-bind="{...tooltip}"
+              @click="openExport()"
             ) 
           span Export this data
 

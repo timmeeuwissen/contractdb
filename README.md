@@ -18,3 +18,11 @@
 - creation of tables
 - creation of tables with AI based on a case
 - single line creation and removal in a table (small tables like todo)
+- Theme params
+- API models 
+- Audit trail
+- generated automatic swagger definitions for auto-generated API's
+  - Versioning for these definitions
+- able to generate a PDF for a detail page of a queryable
+  - use https://stackoverflow.com/questions/70078596/ how-to-convert-component-string-as-real-component-in-vue to load templates from the config
+  - generate the PDF with https://sidebase.io/nuxt-pdf/getting-started/quick-start

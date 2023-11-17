@@ -46,16 +46,18 @@ export default async (queryableName) => {
   const queryParts = {
     select: [
       `${queryableName}.*`, 
-      `${queryableName}.${primaryKeys[config.connection.database][queryableName]} as _PK`,
+      ...(primaryKeys[config.connection.database][queryableName]
+        ? [`${queryableName}.${primaryKeys[config.connection.database][queryableName]} as _PK`]
+        : []),
       ...references.select
     ].join(', '),
     from: queryableName,
     join: references['join'].join(' ')
   }
+  
+  const query = `select ${queryParts.select} from ${queryParts.from} ${queryParts['join']}`
 
-  const [records, definitions] = await connection().promise().query(
-    `select ${queryParts.select} from ${queryParts.from} ${queryParts['join']}`
-  )
+  const [records, definitions] = await connection().promise().query(query)
 
 
   return {

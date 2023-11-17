@@ -36,7 +36,7 @@ v-card
               v-icon $warning
               | Not mapped 
 v-row
-  v-col(cols="5")
+  v-col(cols="4")
     v-card
       v-card-title RDBMS Mapping
       v-card-text
@@ -46,11 +46,11 @@ v-row
           :opened-path="openedPath"
           v-on:info-request="showInfo"
         )
-  v-col(cols="7")
+  v-col(cols="8")
     v-card(
       v-if="infoData.event"
     ) 
-      v-card-title.mx-4.text-wrap Path: 
+      v-card-title Path: 
         template(
           v-for="(evt, idx) in infoData.event"
         ) 
@@ -71,7 +71,7 @@ v-row
             tr(v-if=" infoData.deepest.type == 'field'")
               th Field coercion
               td(v-if="infoData.deepest.properties && infoData.deepest.properties.Type") {{ infoData.deepest.properties.Type }}
-              td(v-else).text-disabled Invalid mapping
+              td(v-else).text-disabled Invalid mapping {{ infoData.deepest }}
             tr(
               :set="meta = infoData.deepest.meta"
             )
@@ -82,7 +82,6 @@ v-row
                 |   infoData.deepest.type == 'field' ? infoData.deepest.title : meta.field, 
                 | ].filter(part => part).join('.') }}
         //- pre {{ infoData.deepest }}
-        
     v-card(
       v-if="infoData.event && 'children' in infoData.deepest"
       prepend-icon="mdi-human-male-girl"
@@ -110,52 +109,7 @@ v-row
                   icon="mdi-chevron-right"
                   @click="openChild(childIndex)"
                 )
-
-    v-card(
-      v-if="infoData.deepest && infoData.deepest.properties"
-      prepend-icon="mdi-bag-personal-tag"
-      title="properties"
-    ) 
-      v-card-text
-        v-table
-          thead
-            tr
-              th Name
-              th Value
-          tbody
-            tr(v-for="(value, key) in infoData.deepest.properties")
-              td {{ key }}
-              td {{ value }}
-
-    v-card(
-      v-if="!infoData.event"
-      v-icon="mdi-mouse"
-      title="Browse the RDBMS mapping"
-      variant="tonal"
-    )        
-      v-card-text 
-        p.pb-2 
-          .
-            In order to understand how fields are allocated to the tables
-            in your database, you can click and expand the database tree 
-            on the left. What you are seeing here is not the structure of the 
-            database itself, but the way that the incoming data is ingested
-            and inserted into the fields of the tables. 
-        
-        p.pb-2
-          .
-            In example, when the
-            database has a foreign key constraint, the importer will traverse 
-            that constraint and first insert, select or update the records 
-            of that constraint, obtaining the identifier associated with that 
-            record and amend it to the record that requires the relation.
             
-        p.pb-2 
-          .
-            In order to understand what happens once the value is inserted into
-            the database, you can simply click the field within the tree to 
-            learn about things like field coercion (the format in which the 
-            database stores the values internally)
 </template>
 <script setup>
 const route = useRoute()

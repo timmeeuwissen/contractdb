@@ -12,7 +12,7 @@ v-card(
           prepend-icon="mdi-table"
           variant="plain" 
           density="compact"
-          @click="emit('clicked:queryable', {type: 'table', name: table.tableName, props: table})"
+          @click="emit('clicked:queryable', {type: 'table', target: table.tableName, props: table})"
         ) {{ table.tableName }}
         
     v-list(density="compact" v-if="queryablesStore.views.length")
@@ -22,7 +22,7 @@ v-card(
           v-for="view in queryablesStore.views"
           prepend-icon="mdi-database-eye"
           variant="plain" 
-          @click="emit('clicked:queryable', {type: 'view', name: view.Name, props: view})"
+          @click="emit('clicked:queryable', {type: 'view', target: view.Name, props: view})"
           density="compact"
         ) {{ view.Name }}
 
@@ -34,7 +34,7 @@ v-card(
           prepend-icon="mdi-xml"
           variant="plain" 
           density="compact"
-          @click="emit('clicked:queryable', {type: 'procedure', name: procedure.Name, props: procedure})"
+          @click="emit('clicked:queryable', {type: 'procedure', target: procedure.Name, props: procedure})"
         ) {{ procedure.Name }}
 </template>
 <script setup>
