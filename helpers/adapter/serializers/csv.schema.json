@@ -1,0 +1,16 @@
+{
+  "required": ["delimiter", "escape", "quote", "columns"],
+  "definitions": {
+    "mapItem": {
+      "type": "object"
+    }
+  },
+  "properties": {
+    "delimiter": {"type": "string"},
+    "escape": {"type": "string"},
+    "quote": {"type": "string"},
+    "columns": {"type": "boolean"},
+    "autoMap": {"type": "boolean"},
+    "map": {"type": "array", "allOf": [{"$ref": "#/definitions/mapItem"}]}
+  }
+}
