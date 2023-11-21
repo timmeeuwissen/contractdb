@@ -32,7 +32,7 @@ v-card(v-if="dataReady")
   //- skipping all keys prefixed with underscore
   //- those are informationsets targetet for visual aid
   v-data-table.tableList(
-    :headers="props.headers.map(header => ({...header, align: !(header.title in columnChecked) ? 'd-none': header.align }))"
+    :headers="headers"
     :items="props.records"
     item-value="_PK"
     show-select
@@ -85,7 +85,7 @@ v-card(v-if="dataReady")
           )
             v-list-item.text-no-wrap(
               draggable
-              v-for="(column, index) in columnOrder.length"
+              v-for="(column, index) in columnOrder"
               :key="index"
             )
               input(
@@ -95,7 +95,8 @@ v-card(v-if="dataReady")
               v-checkbox(
                 prepend-icon="mdi-drag-horizontal"
                 :label="column"
-                :v-model="columnChecked[column]"
+                v-model="columnChecked"
+                :value="column"
                 density="compact"
                 hide-details
               )
@@ -131,7 +132,7 @@ v-card(v-if="dataReady")
                 icon="mdi-delete-outline" 
                 density="compact" 
                 variant="plain"
-                :disabled="item.raw._disableDelete"
+                :disabled="item.raw._disableDelete > 0 ? true : false"
                 @click="deleteItem(item)"
               )
           span(
@@ -206,6 +207,7 @@ const currentItem = ref({})
 const selectedRecords = ref([])
 const columnOrder = ref({})
 const columnChecked = ref({})
+const headers = ref({})
 
 const dialogExport = ref(false)
 const exportFormat = ref('CSV')
@@ -214,12 +216,31 @@ const dataReady = ref(false)
 Promise.resolve(props.records).then(()=>{ dataReady.value=true })
 
 watch(props.headers, (newVal) => {
-  columnChecked.value = newVal.reduce((acc, header) => ({...acc, [header.title]: true}), {})
+  columnChecked.value = newVal.reduce((acc, header) => ([...acc, header.title]), [])
   columnOrder.value = newVal.map(header => header.title)
-})
+}, {immediate: true})
 
 watch(currentItem, (val) => { val || this.closeDelete })
 
+watch(
+  columnChecked, 
+  (newVal) => {
+    console.log('changed!')
+    const checkedObj = columnChecked.value.reduce((acc, col) => ({...acc, [col]: true}), {})
+    const orderObj = Object.entries(columnOrder.value).reduce((acc, [k,v]) => ({...acc, [v]: k}), {})
+
+    headers.value = 
+      props.headers.reduce(
+        (acc, header) => 
+          (header.title in orderObj)
+          && !(header.title in checkedObj)
+          ? acc
+          : [...acc, header], 
+        []
+      )
+  },
+  {immediate: true}
+)
 // deleting
 const deleteItem = (item) => {
   currentItem.value = item
