@@ -1,5 +1,6 @@
 import queryableRelations from '~/helpers/queryableRelations'
-import { getType } from '~/helpers/dbSchema'
+import { getType, getUniques } from '~/helpers/dbSchema'
+import config from '~/config'
 
 export default defineEventHandler(async event => {
   const tableName = event.context.params.table.replaceAll(/[^a-z]/ig,'');
@@ -27,6 +28,17 @@ export default defineEventHandler(async event => {
       identifiedPerTable
     } = await queryableRelations(tableName)
 
+    const constrainedHides = Object.entries((await getUniques(config.connection.database, tableName))).reduce(
+      (acc, [key, props]) => {
+        if(key != 'PRIMARY')
+          props.forEach(field => {
+            acc[field] = false
+          });
+        return acc
+      },
+      {}
+    )
+
     const headers = [
       ...(definitions
         .filter(def => !def.name.match(/^_/))
@@ -41,10 +53,11 @@ export default defineEventHandler(async event => {
               if (def.name in foreignKeys.references) {
                 return 'relation'
               }
-            })()
+            })(),
+            hideable: def.name in constrainedHides ? constrainedHides[def.name] : true
           }
         ]), [])),
-        { title: 'Actions', key: 'actions', align: 'end', sortable: false }
+        { title: 'Actions', key: 'actions', align: 'end', sortable: false, hideable: false }
     ]
 
     return {

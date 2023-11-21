@@ -98,6 +98,7 @@ v-card(v-if="dataReady")
                 v-model="columnChecked"
                 :value="column"
                 density="compact"
+                :disabled="column in columnCanHide && columnCanHide[column] == false"
                 hide-details
               )
               
@@ -197,7 +198,8 @@ const props = defineProps([
   'type', 
   'identifiedPerField', 
   'identifiedPerTable', 
-  'foreignKeys'
+  'foreignKeys',
+  'uniques',
 ])
 const emit = defineEmits(['delete', 'edit'])
 const route = useRoute()
@@ -213,6 +215,10 @@ const dialogExport = ref(false)
 const exportFormat = ref('CSV')
 
 const dataReady = ref(false)
+const columnCanHide = computed(() => 
+  props.headers.reduce((acc, header) => ({...acc, [header.title]: header.hideable}), {})
+)
+
 Promise.resolve(props.records).then(()=>{ dataReady.value=true })
 
 watch(props.headers, (newVal) => {
@@ -225,7 +231,6 @@ watch(currentItem, (val) => { val || this.closeDelete })
 watch(
   columnChecked, 
   (newVal) => {
-    console.log('changed!')
     const checkedObj = columnChecked.value.reduce((acc, col) => ({...acc, [col]: true}), {})
     const orderObj = Object.entries(columnOrder.value).reduce((acc, [k,v]) => ({...acc, [v]: k}), {})
 
