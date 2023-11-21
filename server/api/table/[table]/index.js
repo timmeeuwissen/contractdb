@@ -23,7 +23,8 @@ export default defineEventHandler(async event => {
       definitions, 
       foreignKeys, 
       tableConfiguration, 
-      identifiedPerField
+      identifiedPerField,
+      identifiedPerTable
     } = await queryableRelations(tableName)
 
     const headers = [
@@ -51,6 +52,7 @@ export default defineEventHandler(async event => {
       records,
       tableConfiguration,
       foreignKeys,
+      identifiedPerTable,
       identifiedPerField
     }  
   

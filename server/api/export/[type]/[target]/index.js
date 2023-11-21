@@ -1,6 +1,6 @@
 import exporter from '~/helpers/exporter'
 import queryableRelations from '~/helpers/queryableRelations';
-import { stringify } from 'csv/.';
+import { stringify } from 'csv';
 import connection from '~/helpers/connection';
 
 // automatic exporter

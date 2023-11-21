@@ -124,12 +124,34 @@ v-card(v-if="dataReady")
               PK: item.raw._PK,
             })`
         ) 
-        v-btn(
-          icon="mdi-delete-outline" 
-          density="compact" 
-          variant="plain"
-          @click="deleteItem(item)"
-        )
+        v-tooltip 
+          template(v-slot:activator="{ props }")
+            span(v-bind="{...props}")
+              v-btn(
+                icon="mdi-delete-outline" 
+                density="compact" 
+                variant="plain"
+                :disabled="item.raw._disableDelete"
+                @click="deleteItem(item)"
+              )
+          span(
+            v-if="props.foreignKeys && Object.values(props.foreignKeys.referencedBy).length && props.identifiedPerTable"
+          )
+            p How many records relate to this record:
+            ul(v-if="Object.keys(props.identifiedPerTable).length")
+              li(
+                v-for="(ident, identKey) in props.identifiedPerTable"
+              ) 
+                v-icon(
+                  icon="mdi-check"
+                  v-if="!item.raw[identKey] || ident.constraint.deleteRule != 'RESTRICT'"
+                )
+                v-icon(
+                  icon="mdi-cancel"
+                  v-else
+                )
+                | {{ ident.identifier }}: {{ item.raw[identKey] }}
+            span(v-else) There are no (possible) relations to this record.
       
       //- a column which refers to an external record
       template(
@@ -145,7 +167,7 @@ v-card(v-if="dataReady")
               | props.identifiedPerField[def.key].replaceAll(
               |   /\{\{\s?(.*?)\s\}\}/g, 
               |   (match, joinCol) => item.raw[`_${def.key}_iBy_${joinCol}`]
-              | ) 
+              | )   
               | }}
             v-col.text-right
               v-btn(
@@ -163,13 +185,20 @@ v-card(v-if="dataReady")
       template(
         v-else
       ) {{ item.raw[def.key] }}
-
-    
 </template>
 <script setup>
 import { ref, watch } from 'vue'
-const props = defineProps(['headers', 'records', 'tableConfiguration', 'target', 'type', 'identifiedPerField', 'foreignKeys'])
-const emit = defineEmits('delete', 'edit')
+const props = defineProps([
+  'headers', 
+  'records', 
+  'tableConfiguration', 
+  'target', 
+  'type', 
+  'identifiedPerField', 
+  'identifiedPerTable', 
+  'foreignKeys'
+])
+const emit = defineEmits(['delete', 'edit'])
 const route = useRoute()
 
 const dialogDelete = ref(false)
@@ -216,6 +245,20 @@ const closeExport = () => {
 }
 const confirmExport = () => {
   closeExport()
+}
+
+// tooltips
+const deleteTooltip = (item) => {
+  if (!props.foreignKeys || !Object.values(props.foreignKeys.referencedBy).length || !props.identifiedPerTable) return ''
+  return Object.keys(props.identifiedPerTable).reduce(
+    (acc, reference) => {
+      console.log(item, reference, item[reference])
+      if (props.identifiedPerTable[reference])
+        acc.push(`${props.identifiedPerTable[reference]}: ${item[reference]}`)
+      return acc
+    },
+    []
+  ).join(', ')
 }
 
 </script>

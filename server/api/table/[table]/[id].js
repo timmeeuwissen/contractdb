@@ -1,24 +1,83 @@
 import connection from '~/helpers/connection'
 import config from '~/config.json'
-import { getAllPrimaryKeys, getConstraintsForTable } from '~/helpers/dbSchema'
+import { getAllPrimaryKeys, getConstraintsForTable, getUniques } from '~/helpers/dbSchema'
 import { getType } from '~/helpers/dbSchema'
 import { get_stringsForTables, get_relatingRecordsIdentified } from '~/helpers/identify'
+import mysql from 'mysql2'
 
 export default defineEventHandler(async event => {
-  const tableName = event.context.params.table.replaceAll(/[^a-z]/ig,'');
+  const 
+    tableName = event.context.params.table.replaceAll(/[^a-z]/ig,''),
+    id = parseInt(event.context.params.id),
 
-  if (event.node.req.method && event.node.req.method == 'GET' && event.context.params.id) {
-    const primaryKeys = await getAllPrimaryKeys()
-    const primaryKey = primaryKeys[config.connection.database][tableName]
+    primaryKeys = await getAllPrimaryKeys(),
+    primaryKey = primaryKeys[config.connection.database][tableName]
 
-    const [records, defRec] = await connection().promise().query(
-      `select * from ${tableName} where ${primaryKey} = ?`, 
-      [event.context.params.id]
-    );
+  const [records, defRec] = await connection().promise().query(
+    `select * from ${tableName} where ${primaryKey} = ?`, 
+    [event.context.params.id]
+  );
+  
+  if(records.length != 1) {
+    error({ statusCode: 404, message: 'Record not found' })
+  }
+  if (event.node.req.method && event.node.req.method == 'PUT') {
+    const reqBody = await readBody(event)
     
-    if(records.length != 1) {
-      error({ statusCode: 404, message: 'Record not found' })
+    const {changed, updateClause} = Object.keys(reqBody).reduce(
+      (acc, key) => {
+        const changes = []
+        if (!(key in records[0])) {
+          changes.push('nonexistent')
+        }
+        else if (records[0][key] != reqBody[key]) {
+          changes.push('changed')
+          
+          acc.updateClause.keys.push(`${key} = ?`)
+          acc.updateClause.values.push(reqBody[key])
+        }
+        
+        if (changes.length) acc.changed[key] = changes
+        return acc
+      },
+      {changed: {}, updateClause: {keys: [], values: []}}
+    )
+    
+    let violations = {},
+        updated = {},
+        error = {}
+    if(updateClause.keys.length){
+      await connection().promise().beginTransaction()
+      try {
+        const [updProps] = await connection().promise().query(
+          `update ${tableName} set ${updateClause.keys.join(', ')} where ${primaryKey} = ?`, 
+          [...updateClause.values, event.context.params.id  ]
+        );
+        updated = updProps
+      }
+      catch(e) {
+        console.log(e)
+        if (e.code == 'ER_DUP_ENTRY') {
+          const violatedConstraint = e.sqlMessage.match(/'([^']*?)'$/)[1].split('.')
+          const uniques = await getUniques(
+            config.connection.database, 
+            violatedConstraint[0]
+          )
+          violations = uniques[violatedConstraint[1]].reduce((acc, k) => ({...acc, [k]: violatedConstraint[1]}), {})
+        }
+        else {
+          // console.error(e)
+          error = e
+        }
+      }
+      
+      await connection().promise().rollback()
     }
+    console.log({changed, violations, error, updated})
+    return {changed, violations, error, updated}
+
+  }
+  else if (event.node.req.method && event.node.req.method == 'GET') {
 
     const foreignKeys = await getConstraintsForTable(tableName)
 

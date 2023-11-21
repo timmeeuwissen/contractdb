@@ -12,12 +12,23 @@ v-form(
   ref="dataForm"
 )
   v-card
-    template(v-slot:title).text-left data
+    template(v-slot:title).text-left Record data
     template(v-slot:text v-if="record")
       v-table
         tbody
-          tr(v-for="(val, field) in record" :set="def = definition[field]")
-            th {{ def.title }}
+          tr(
+            v-for="(val, field) in record" :set="def = definition[field]"
+          )
+            th
+              | {{ def.title }}
+              v-icon(
+                icon="mdi-delta"
+                v-if="delta && field in delta.changed"
+              )
+              v-icon(
+                icon="mdi-alert-circle"
+                v-if="delta && field in delta.violations"
+              )
             td
               template(v-if="def.mutable")
                 v-text-field(
@@ -27,6 +38,7 @@ v-form(
                   single-line   
                   type="number"
                   density="compact"
+                  :color="delta && field in delta.violations ? 'error' : undefined"
                 )            
                 v-autocomplete(
                   v-if="def.constraint"
@@ -53,6 +65,7 @@ v-form(
                   hide-details
                   single-line
                   density="compact"
+                  :color="delta && field in delta.violations ? 'error' : undefined"
                 )
                 v-switch(
                   v-if="def.type.match(/TINY|BOOL/)"
@@ -102,63 +115,51 @@ v-form(
             td {{ reference._tableTitle}}
             td {{ reference.Ident }}
 </template>
-<script>
+<script setup>
 import { useRecordsStore } from '~/stores/records'
 import dateInput from '~/components/dateInput'
 import { useDebugStore } from '~/stores/debug'
 import { useAutocompleteStore } from '~/stores/autocomplete'
+import { reactive } from 'vue'
 
-export default {
-  async setup() {
-    const route = useRoute(),
-      table = route.params.table,
-      id = route.params.id,
-      recordsStore = useRecordsStore(),
-      debugStore = useDebugStore(),
-      autocompleteStore = useAutocompleteStore()
-    
-    recordsStore.fetchRecord(table, id)
-    autocompleteStore.fetchCompleterData(table)
+const route = useRoute(),
+  table = route.params.table,
+  id = route.params.id,
+  recordsStore = useRecordsStore(),
+  debugStore = useDebugStore(),
+  autocompleteStore = useAutocompleteStore()
 
-    return {
-      recordsStore,
-      debugStore,
-      autocompleteStore,
-      table,
-      id,
-    }
-  },
-  computed: {
-    record() {
-      return this.recordsStore.record(this.table, this.id)
-    },
-    definition() {
-      return this.recordsStore.definition(this.table)
-    },
-    referencedBy(){
-      return this.recordsStore.referencedBy(this.table)
-    },
-    title() {
-      const record = this.recordsStore.record(this.table, this.id)
-      if (!record) return {
-        icon: undefined,
-        label: undefined
-      }
-      const def = this.recordsStore.definition(this.table)
-      return {
-        icon: def._tableIcon,
-        label: def._tableTitle + ': '
-          + def._identifiedBy.replaceAll(
-            /\{\{\s?(.*?)\s\}\}/g, 
-            (_match, field) => record[field]
-          )  
-      }
-    }
-  },
-  methods: {
-    updateRecord() {}
+recordsStore.fetchRecord(table, id)
+autocompleteStore.fetchCompleterData(table)
+
+const record = computed(() => recordsStore.record(table, id))
+const definition = computed(() => recordsStore.definition(table))
+const referencedBy = computed(() => recordsStore.referencedBy(table))
+const delta = computed(() => recordsStore.delta(table, id))
+
+watch(recordsStore.record(table,id), (newVal) => {
+  console.log('fetching deltas', newVal)
+  recordsStore.fetchDelta(table, id, newVal)
+})
+
+const title = computed(() => {
+  const rec = recordsStore.record(table, id)
+  if (!rec) return {
+    icon: undefined,
+    label: undefined
   }
-}
+  const def = recordsStore.definition(table)
+  return {
+    icon: def._tableIcon,
+    label: def._tableTitle + ': '
+      + def._identifiedBy.replaceAll(
+        /\{\{\s?(.*?)\s\}\}/g, 
+        (_match, field) => rec[field]
+      )  
+  }
+})
+
+const updateRecord = () => {}
 
 </script> 
 <style lang="sass" scoped>

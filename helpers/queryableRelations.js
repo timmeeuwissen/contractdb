@@ -33,29 +33,74 @@ export default async (queryableName) => {
       // join the table
       acc.join.push(
         `left join ${ref[1].table} as ${ref[1].table}_${idx} ` +
-        `on ${ref[1].table}_${idx}.${ref[1].column} = ${queryableName}.${ref[0]}`
+        `on ${ref[1].table}_${idx}.${ref[1].column} = qble.${ref[0]}`
       )
 
       return acc
     },
-    {select: [], join: [], identifiedPerField: {}}
+    {select: [], join: [], identifiedPerField: {}, group: []}
   )
 
   const primaryKeys = await getAllPrimaryKeys()
 
+  const {identifiedPerTable, ...referencedBys} = foreignKeys.referencedBy.reduce(
+    (acc, ref, idx) => {      
+      // add the count
+      acc.select.push(
+        ` count(${ref.table}_${idx}_ref.${primaryKeys[config.connection.database][ref.table]}) as _${ref.table}_ref_count `
+      )
+
+      // when there are constraints that prevent deletion, we want to know beforehand
+      if(ref.deleteRule == 'RESTRICT')
+        acc.sumForDisableDelete.push(
+          `count(${ref.table}_${idx}_ref.${primaryKeys[config.connection.database][ref.table]})`
+        )
+      
+      // join the table
+      acc.join.push(
+        `left join ${ref.table} as ${ref.table}_${idx}_ref ` +
+        `on ${ref.table}_${idx}_ref.${ref.column} = qble.${ref.targetCol} `
+      )
+      
+      acc.identifiedPerTable[`_${ref.table}_ref_count`] = {
+        identifier:
+          config.tableConfiguration
+          && config.tableConfiguration[ref.table]
+          && config.tableConfiguration[ref.table].title
+          ? config.tableConfiguration[ref.table].title
+          : ref.table,
+        constraint: ref
+      }
+
+      return acc
+    },
+    {select: [], join: [], sumForDisableDelete: [], identifiedPerTable: {}, group: []}
+  )
+  if (referencedBys.join.length) referencedBys.group.push(
+    ` qble.${primaryKeys[config.connection.database][queryableName]} `
+  )
+
   const queryParts = {
     select: [
-      `${queryableName}.*`, 
+      `qble.*`, 
       ...(primaryKeys[config.connection.database][queryableName]
-        ? [`${queryableName}.${primaryKeys[config.connection.database][queryableName]} as _PK`]
+        ? [`qble.${primaryKeys[config.connection.database][queryableName]} as _PK`]
         : []),
-      ...references.select
+      ...(referencedBys.sumForDisableDelete.length
+        ? [`${referencedBys.sumForDisableDelete.join(' + ')} as _disableDelete`]
+        : []),
+      ...references.select,
+      ...referencedBys.select
     ].join(', '),
     from: queryableName,
-    join: references['join'].join(' ')
+    join: [...references['join'], ...referencedBys['join']].join(' '),
+    group: [...references.group, ...referencedBys.group].join(', ')
   }
   
-  const query = `select ${queryParts.select} from ${queryParts.from} ${queryParts['join']}`
+  const query = `select ${queryParts.select} ` +
+    `from ${queryParts.from} as qble ` +
+    `${queryParts['join']} ` +
+    `${queryParts.group ? ' group by ' + queryParts.group : ''} `
 
   const [records, definitions] = await connection().promise().query(query)
 
@@ -65,6 +110,7 @@ export default async (queryableName) => {
     definitions, 
     foreignKeys, 
     primaryKeys, 
+    identifiedPerTable,
     tableConfiguration: config.tableConfiguration[queryableName], 
     identifiedPerField
   }

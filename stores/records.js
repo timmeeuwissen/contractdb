@@ -3,13 +3,11 @@ import { defineStore } from 'pinia'
 export const useRecordsStore = defineStore('recordsStore', {
   state: () => ({
     records: {},
+    deltas: {},
     definitions: {},
     relatingRecords: {}
   }),
   actions: {
-    // todo: enable fetching within another database
-    // todo: check if record has changed inbetween
-    // todo: link changes to overview
     async fetchRecord(table, id) {
       const response = await useFetch(`/api/table/${table}/${id}`)
       if (!(table in this.records)) {
@@ -23,6 +21,17 @@ export const useRecordsStore = defineStore('recordsStore', {
       }
       this.records[table][response.data.value.record[response.data.value.primaryKey]] = 
         response.data.value.record
+    },
+    async fetchDelta(table, id, formData) {
+      if (!(table in this.deltas)) this.deltas[table] = {}
+      const response = await useFetch(
+        `/api/table/${table}/${id}?mode=delta`,
+        { 
+          method: 'PUT',
+          body: formData,
+        }
+      )
+      this.deltas[table][id] = response.data.value
     }
   },
   getters: {
@@ -30,6 +39,14 @@ export const useRecordsStore = defineStore('recordsStore', {
       return (table, id) => {
         if (state.records[table] && state.records[table][id]) {
           return state.records[table][id]
+        }
+        return undefined
+      }
+    },
+    delta: state => {
+      return (table, id) => {
+        if (state.deltas[table] && state.deltas[table][id]) {
+          return state.deltas[table][id]
         }
         return undefined
       }

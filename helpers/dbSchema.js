@@ -161,22 +161,31 @@ export const getTablesByConstrainingOrder = async () => {
 
 export const getConstraintsForTable = async table => {
   const [foreignKeyRecords] = await connection().promise().query(
-    'select TABLE_NAME, COLUMN_NAME, REFERENCED_TABLE_NAME, REFERENCED_COLUMN_NAME ' +
-    'from information_schema.key_column_usage ' +
-    'where REFERENCED_TABLE_SCHEMA is not null ' +
-    `and (TABLE_NAME = '${table}' or REFERENCED_TABLE_NAME = '${table}')`);
+    'select     KC.TABLE_NAME, KC.COLUMN_NAME, KC.REFERENCED_TABLE_NAME, KC.REFERENCED_COLUMN_NAME ' +
+    '           , RC.UPDATE_RULE, RC.DELETE_RULE, RC.CONSTRAINT_NAME ' +
+    'from       information_schema.key_column_usage as KC ' +
+    'inner join information_schema.REFERENTIAL_CONSTRAINTS as RC ' +
+    'on         KC.CONSTRAINT_NAME = RC.CONSTRAINT_NAME ' +
+    'where      KC.REFERENCED_TABLE_SCHEMA is not null ' +
+    `and        (KC.TABLE_NAME = '${table}' or KC.REFERENCED_TABLE_NAME = '${table}')`);
 
   return foreignKeyRecords.reduce((acc,rec) => {
     if (rec.TABLE_NAME == table) {
       acc.references[rec.COLUMN_NAME] = {
         table: rec.REFERENCED_TABLE_NAME, 
-        column: rec.REFERENCED_COLUMN_NAME
+        column: rec.REFERENCED_COLUMN_NAME,
+        updateRule: rec.UPDATE_RULE,
+        deleteRule: rec.DELETE_RULE
       }
     }
     if (rec.REFERENCED_TABLE_NAME == table) {
       acc.referencedBy.push({
         table: rec.TABLE_NAME, 
-        column: rec.COLUMN_NAME
+        column: rec.COLUMN_NAME,
+        targetCol: rec.REFERENCED_COLUMN_NAME,
+        updateRule: rec.UPDATE_RULE,
+        deleteRule: rec.DELETE_RULE,
+        constraintName: rec.CONSTRAINT_NAME
       })
     }
 
