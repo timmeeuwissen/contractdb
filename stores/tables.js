@@ -13,5 +13,11 @@ export const useQueryablesStore = defineStore('queryablesStore', {
       this.views = response.data.value.views
       this.procedures = response.data.value.procedures
     }
-  },  
+  },
+  getters: {
+    tableObject: state => state.tables.reduce(
+      (acc, table) => ({...acc, [table.tableName]: table}), 
+      {}
+    )
+  }  
 })

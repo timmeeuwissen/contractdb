@@ -47,7 +47,22 @@ v-card(v-if="dataReady")
             :icon="props.tableConfiguration.icon"
           )
           span.ml-3 Records from {{ props.tableConfiguration.title || props.target }}
+        
         v-divider.mx-4(inset vertical)
+        v-tooltip( 
+          location="top"
+        )
+          template( 
+            v-slot:activator="{ props: tooltip }"
+          )  
+            v-btn(
+              :icon="quicklinksStore.get_queryable_state(props.target) ? 'mdi-checkbox-marked-outline' : 'mdi-checkbox-blank-outline'"
+              v-bind="{...tooltip}"
+              @click="quicklinksStore.toggle_queryable(props.target)"
+            ) 
+          span Have as a quick-link on your homepage
+        
+        
         v-tooltip( 
           location="top"
         )
@@ -190,6 +205,8 @@ v-card(v-if="dataReady")
 </template>
 <script setup>
 import { ref, watch } from 'vue'
+import { useQuicklinkStore } from '~/stores/quicklinks';
+
 const props = defineProps([
   'headers', 
   'records', 
@@ -203,6 +220,8 @@ const props = defineProps([
 ])
 const emit = defineEmits(['delete', 'edit'])
 const route = useRoute()
+
+const quicklinksStore = useQuicklinkStore()
 
 const dialogDelete = ref(false)
 const currentItem = ref({})

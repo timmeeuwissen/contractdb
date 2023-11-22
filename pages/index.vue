@@ -1,5 +1,8 @@
 <template lang="pug">
 v-card
+  v-card-text
+    logo-component
+v-card
   v-card-title What to do
   v-card-text 
     v-list(lines="one")
@@ -37,8 +40,23 @@ v-card(color="warning" v-if="debugStore.active")
           v-icon(icon="mdi-api")
         v-list-item-title API Access
         v-list-item-subtitle Manage what systemscan do with your data
+
+v-card(v-if="queryables.length")
+  v-card-title Quick links
+  v-card-text 
+    v-list(lines="one" color="warning")
+      v-list-item(v-for="queryable in queryables" :to="queryable.to")
+        template(v-slot:prepend)
+          v-icon(:icon="queryable.icon")
+        v-list-item-title {{ queryable.title }}
+
 </template>
 <script setup>
 import { useDebugStore } from '~/stores/debug'
+import LogoComponent from '~/components/logo.vue'
+import { useQuicklinkStore } from '~/stores/quicklinks'
+
 const debugStore = useDebugStore()
+const quicklinksStore = useQuicklinkStore()
+const queryables = computed(() => quicklinksStore.fullQueryables)
 </script>

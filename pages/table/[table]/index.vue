@@ -3,7 +3,7 @@ dataset-component(
   :records="data.records",
   :headers="data.headers",
   :tableConfiguration="data.tableConfiguration"
-  :target="route.params.tale"
+  :target="route.params.table"
   :identifiedPerField="data.identifiedPerField"
   :identifiedPerTable="data.identifiedPerTable"
   :foreignKeys="data.foreignKeys"
