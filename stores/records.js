@@ -16,10 +16,13 @@ export const useRecordsStore = defineStore('recordsStore', {
       if (!(table in this.definitions)) {
         this.definitions[table] = response.data.value.definitions
       }
-      if (!(table in this.relatingRecords)) {
-        this.relatingRecords[table] = response.data.value.relatingRecords
+      if (!(table in this.records)) {
+        this.relatingRecords[table] = {}
       }
-      this.records[table][response.data.value.record[response.data.value.primaryKey]] = 
+      if (!(table in this.relatingRecords)) {
+        this.relatingRecords[table][response.data.value.record[response.data.value.primaryKey]] = response.data.value.relatingRecords
+      }
+      this.records[table][response.data.value.record[response.data.value.primaryKey]] =  
         response.data.value.record
     },
     async fetchDelta(table, id, formData) {
@@ -60,9 +63,9 @@ export const useRecordsStore = defineStore('recordsStore', {
       }
     },
     referencedBy: state => {
-      return (table) => {
-        if (state.relatingRecords[table]) {
-          return state.relatingRecords[table]
+      return (table, id) => {
+        if (state.relatingRecords[table][id]) {
+          return state.relatingRecords[table][id]
         }
         return undefined
       }

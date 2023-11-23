@@ -1,12 +1,7 @@
 <template lang="pug">
 dataset-component(
-  :records="data.records",
-  :headers="data.headers",
-  :tableConfiguration="data.tableConfiguration"
+  :datasetStore="datasetStore",
   :target="route.params.table"
-  :identifiedPerField="data.identifiedPerField"
-  :identifiedPerTable="data.identifiedPerTable"
-  :foreignKeys="data.foreignKeys"
   @edit="processEdit"
   @delete="processDelete"
   type="table"
@@ -14,9 +9,11 @@ dataset-component(
 </template>
 <script setup>
 import DatasetComponent from '~/components/dataset'
+import { getDatasetStore } from '~/stores/dataset'
 
 const route = useRoute()
-const {data} = await useFetch(`/api/table/${route.params.table}`, {query: {format: 'ui'}})
+const datasetStore = getDatasetStore(route.params.table)
+datasetStore.fetch_data()
 
 const processEdit = evt => {
   navigateTo(`/${evt.type}/${evt.target}/${evt.PK}`)

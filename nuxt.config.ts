@@ -18,6 +18,7 @@ export default defineNuxtConfig({
   },
   modules: [
     '@pinia/nuxt', 
+    '@pinia-plugin-persistedstate/nuxt',
     '@nuxtjs/device',
     '@nuxtjs/i18n',
     (_options, nuxt) => {
@@ -27,6 +28,12 @@ export default defineNuxtConfig({
       })
     },
   ],
+  piniaPersistedstate: {
+    cookieOptions: {
+      sameSite: 'strict',
+    },
+    storage: 'localStorage'
+  },  
   vite: {
     vue: {
       template: {

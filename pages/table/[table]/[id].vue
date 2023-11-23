@@ -134,11 +134,10 @@ autocompleteStore.fetchCompleterData(table)
 
 const record = computed(() => recordsStore.record(table, id))
 const definition = computed(() => recordsStore.definition(table))
-const referencedBy = computed(() => recordsStore.referencedBy(table))
+const referencedBy = computed(() => recordsStore.referencedBy(table, id))
 const delta = computed(() => recordsStore.delta(table, id))
 
 watch(recordsStore.record(table,id), (newVal) => {
-  console.log('fetching deltas', newVal)
   recordsStore.fetchDelta(table, id, newVal)
 })
 

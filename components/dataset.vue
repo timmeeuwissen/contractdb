@@ -27,13 +27,12 @@ v-dialog(v-model="dialogExport" max-width="500px")
         :href="`/api/export/${props.type}/${props.target}?format=${exportFormat}`" 
         @click="confirmExport()"
       ) Export
-
-v-card(v-if="dataReady")
+v-card(v-if="props.datasetStore.dataReady")
   //- skipping all keys prefixed with underscore
   //- those are informationsets targetet for visual aid
   v-data-table.tableList(
-    :headers="headers"
-    :items="props.records"
+    :headers="datasetColumnsStore.headersToShow"
+    :items="props.datasetStore.records"
     item-value="_PK"
     show-select
     density="compact"
@@ -44,9 +43,9 @@ v-card(v-if="dataReady")
       v-toolbar(flat)
         v-toolbar-title
           v-icon(
-            :icon="props.tableConfiguration.icon"
+            :icon="props.datasetStore.tableConfiguration.icon"
           )
-          span.ml-3 Records from {{ props.tableConfiguration.title || props.target }}
+          span.ml-3 Records from {{ props.datasetStore.tableConfiguration.title || props.target }} 
         
         v-divider.mx-4(inset vertical)
         v-tooltip( 
@@ -100,31 +99,31 @@ v-card(v-if="dataReady")
           )
             v-list-item.text-no-wrap(
               draggable
-              v-for="(column, index) in columnOrder"
+              v-for="(column, index) in datasetColumnsStore.sorted"
               :key="index"
             )
               input(
-                v-model="columnOrder"
+                v-model="datasetColumnsStore.sorted"
                 type="hidden"
               )
               v-checkbox(
                 prepend-icon="mdi-drag-horizontal"
                 :label="column"
-                v-model="columnChecked"
+                v-model="datasetColumnsStore.checked"
                 :value="column"
                 density="compact"
-                :disabled="column in columnCanHide && columnCanHide[column] == false"
+                :disabled="column in datasetColumnsStore.hideableHeaders && datasetColumnsStore.hideableHeaders[column] == false"
                 hide-details
               )
               
     //- todo : translate header columns
     template(
-      v-for="def in props.headers"
+      v-for="def in props.datasetStore.headers"
       #[`column.${def.key}`]="{column}"
     ) {{ column.title }}
 
     template(
-      v-for="def in props.headers"
+      v-for="def in props.datasetStore.headers"
       #[`item.${def.key}`]="{ item }"
     ) 
       //- the last column where the buttons are
@@ -152,12 +151,12 @@ v-card(v-if="dataReady")
                 @click="deleteItem(item)"
               )
           span(
-            v-if="props.foreignKeys && Object.values(props.foreignKeys.referencedBy).length && props.identifiedPerTable"
+            v-if="props.datasetStore.foreignKeys && Object.values(props.datasetStore.foreignKeys.referencedBy).length && props.datasetStore.identifiedPerTable"
           )
             p How many records relate to this record:
-            ul(v-if="Object.keys(props.identifiedPerTable).length")
+            ul(v-if="Object.keys(props.datasetStore.identifiedPerTable).length")
               li(
-                v-for="(ident, identKey) in props.identifiedPerTable"
+                v-for="(ident, identKey) in props.datasetStore.identifiedPerTable"
               ) 
                 v-icon(
                   icon="mdi-check"
@@ -181,7 +180,7 @@ v-card(v-if="dataReady")
               //- todo : should be handled by helper function, but requires DB connection to resolve
               //-        the unique columns
               | {{ 
-              | props.identifiedPerField[def.key].replaceAll(
+              | props.datasetStore.identifiedPerField[def.key].replaceAll(
               |   /\{\{\s?(.*?)\s\}\}/g, 
               |   (match, joinCol) => item.raw[`_${def.key}_iBy_${joinCol}`]
               | )   
@@ -193,7 +192,7 @@ v-card(v-if="dataReady")
                 density="compact"
                 @click=`emit('edit', {
                     type: 'table',
-                    target: props.foreignKeys.references[def.key].table,
+                    target: props.datasetStore.foreignKeys.references[def.key].table,
                     PK: item.raw[def.key],
                   })`
               )
@@ -202,69 +201,39 @@ v-card(v-if="dataReady")
       template(
         v-else
       ) {{ item.raw[def.key] }}
+v-card(
+  v-else
+  title="Loading data..."
+  variant="tonal"
+)
 </template>
 <script setup>
 import { ref, watch } from 'vue'
-import { useQuicklinkStore } from '~/stores/quicklinks';
+import { useQuicklinkStore } from '~/stores/quicklinks'
+import { getDatasetColumnsStore } from '~/stores/datasetColumns'
 
 const props = defineProps([
-  'headers', 
-  'records', 
-  'tableConfiguration', 
   'target', 
   'type', 
-  'identifiedPerField', 
+  'datasetStore', 
   'identifiedPerTable', 
-  'foreignKeys',
-  'uniques',
 ])
 const emit = defineEmits(['delete', 'edit'])
 const route = useRoute()
 
 const quicklinksStore = useQuicklinkStore()
+const datasetColumnsStore = getDatasetColumnsStore(props.target)
 
 const dialogDelete = ref(false)
 const currentItem = ref({})
 const selectedRecords = ref([])
-const columnOrder = ref({})
-const columnChecked = ref({})
-const headers = ref({})
+
 
 const dialogExport = ref(false)
 const exportFormat = ref('CSV')
 
-const dataReady = ref(false)
-const columnCanHide = computed(() => 
-  props.headers.reduce((acc, header) => ({...acc, [header.title]: header.hideable}), {})
-)
-
-Promise.resolve(props.records).then(()=>{ dataReady.value=true })
-
-watch(props.headers, (newVal) => {
-  columnChecked.value = newVal.reduce((acc, header) => ([...acc, header.title]), [])
-  columnOrder.value = newVal.map(header => header.title)
-}, {immediate: true})
-
 watch(currentItem, (val) => { val || this.closeDelete })
 
-watch(
-  columnChecked, 
-  (newVal) => {
-    const checkedObj = columnChecked.value.reduce((acc, col) => ({...acc, [col]: true}), {})
-    const orderObj = Object.entries(columnOrder.value).reduce((acc, [k,v]) => ({...acc, [v]: k}), {})
-
-    headers.value = 
-      props.headers.reduce(
-        (acc, header) => 
-          (header.title in orderObj)
-          && !(header.title in checkedObj)
-          ? acc
-          : [...acc, header], 
-        []
-      )
-  },
-  {immediate: true}
-)
 // deleting
 const deleteItem = (item) => {
   currentItem.value = item
@@ -294,12 +263,12 @@ const confirmExport = () => {
 
 // tooltips
 const deleteTooltip = (item) => {
-  if (!props.foreignKeys || !Object.values(props.foreignKeys.referencedBy).length || !props.identifiedPerTable) return ''
-  return Object.keys(props.identifiedPerTable).reduce(
+  if (!props.datasetStore.foreignKeys || !Object.values(props.datasetStore.foreignKeys.referencedBy).length || !props.datasetStore.identifiedPerTable) return ''
+  return Object.keys(props.datasetStore.identifiedPerTable).reduce(
     (acc, reference) => {
       console.log(item, reference, item[reference])
-      if (props.identifiedPerTable[reference])
-        acc.push(`${props.identifiedPerTable[reference]}: ${item[reference]}`)
+      if (props.datasetStore.identifiedPerTable[reference])
+        acc.push(`${props.datasetStore.identifiedPerTable[reference]}: ${item[reference]}`)
       return acc
     },
     []

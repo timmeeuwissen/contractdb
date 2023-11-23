@@ -4,4 +4,4 @@ export const useDebugStore = defineStore('debugStore', {
   state: () => ({
     active: false,
   }),
-})
+}, { persist: true })
