@@ -6,7 +6,10 @@ export const useImportersStore = defineStore('importersStore', {
   }),
   actions: {
     async fetchImporters() {
-      const { data } = await useFetch('/api/imports')
+      const { data } = await useFetch(
+        '/api/imports',
+        { server: true }
+      )
       this.importers = Object.keys(data.value).reduce((
         (acc, key) => [...acc, {title: key, value: key, type: data.value[key].type}]), 
         []

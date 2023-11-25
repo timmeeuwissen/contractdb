@@ -6,7 +6,10 @@ export const useGraphsStore = defineStore('graphsStore', {
   }),
   actions: {
     async fetchGraphs() {
-      const response = await useFetch('/api/graphs')
+      const response = await useFetch(
+        '/api/graphs',
+        { server: true }
+      )
       this.graphs = response.data.value.graphs
     }
   },  

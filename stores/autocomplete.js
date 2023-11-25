@@ -6,7 +6,10 @@ export const useAutocompleteStore = defineStore('autocompleteStore', {
   }),
   actions: {
     async fetchCompleterData(table) {
-      const response = await useFetch(`/api/table/${table}/autocomplete`)
+      const response = await useFetch(
+        `/api/table/${table}/autocomplete`,
+        { server: true }
+      )
       this.perTable = { ...this.perTable, ...response.data.value }
     }
   },

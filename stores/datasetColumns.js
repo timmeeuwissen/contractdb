@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import { getDatasetStore } from './dataset'
+import { getDatasetStore } from '~/stores/dataset'
 
 // todo : allow for more than tables
 export const getDatasetColumnsStore = (queryable) => (defineStore(
@@ -27,17 +27,25 @@ export const getDatasetColumnsStore = (queryable) => (defineStore(
       )
     })
 
-    watch(
-      datasetStore.headers,
-      (newHeaders) => {
-        checked.value = newHeaders.map(header => header.title)
-        sorted.value = newHeaders.map(header => header.title)
-        hideableHeaders.value = newHeaders.reduce((acc, header) => ({...acc, [header.title]: header.hideable}), {})
-        headers.value = newHeaders
-      },
-      { immediate: true }
+    const updateHeaders = () => {
+      checked.value = datasetStore.headers.map(header => header.title)
+      sorted.value = datasetStore.headers.map(header => header.title)
+      hideableHeaders.value = datasetStore.headers.reduce((acc, header) => ({...acc, [header.title]: header.hideable}), {})
+      headers.value = datasetStore.headers
+    }
+
+    datasetStore.$onAction(
+      ({
+        name,
+        after, 
+      }) => {
+        console.log(`${name} was called`)
+        after(() => updateHeaders())
+      }
     )
 
+    updateHeaders()
+    
     return {
       headers,
       sorted,
@@ -45,6 +53,5 @@ export const getDatasetColumnsStore = (queryable) => (defineStore(
       headersToShow,
       hideableHeaders,
     }
-  },
-  { persist: true }
-))()
+  }
+)())

@@ -13,63 +13,64 @@ v-form(
 )
   v-card
     template(v-slot:title).text-left Record data
-    template(v-slot:text v-if="record")
+    template(v-slot:text v-if="recordStore.dataReady")
       v-table
         tbody
           tr(
-            v-for="(val, field) in record" :set="def = definition[field]"
+            v-for="(val, field) in recordStore.record" :set="def = recordStore.definition[field]"
           )
             th
               | {{ def.title }}
-              v-icon(
-                icon="mdi-delta"
-                v-if="delta && field in delta.changed"
-              )
-              v-icon(
-                icon="mdi-alert-circle"
-                v-if="delta && field in delta.violations"
-              )
+              //- v-icon(
+              //-   icon="mdi-delta"
+              //-   v-if="recordStore.delta && recordStore.delta.changed && field in recordStore.delta.changed"
+              //- )
+              //- v-icon(
+              //-   icon="mdi-alert-circle"
+              //-   v-if="recordStore.delta && recordStore.delta.violations && field in recordStore.delta.violations"
+              //- )
             td
               template(v-if="def.mutable")
                 v-text-field(
                   v-if="def.type.match(/LONG|INT/) && !def.constraint"
-                  v-model="record[field]"
+                  v-model="recordStore.record[field]"
                   hide-details
                   single-line   
                   type="number"
                   density="compact"
-                  :color="delta && field in delta.violations ? 'error' : undefined"
+                  :color="recordStore.delta && recordStore.delta.violations && field in recordStore.delta.violations ? 'error' : undefined"
                 )            
                 v-autocomplete(
                   v-if="def.constraint"
-                  v-model="record[field]"
+                  v-model="recordStore.record[field]"
+                  :placeholder="`Select a ${def.constraint.table}`"
                   :items="autocompleteStore.completerData(def.constraint.table)"
                 )
                   template(v-slot:append)
                     v-btn(
                       icon="mdi-pencil"
-                      :disabled="record[field] ? false : true"
+                      :disabled="recordStore.record[field] ? false : true"
                       density="compact"
                       variant="plain"
-                      :to="`/table/${definition[field].constraint.table}/${record[field]}`"
+                      :to="`/table/${recordStore.definition[field].constraint.table}/${recordStore.record[field]}`"
                     )
                     v-btn(
                       icon="mdi-table"
                       density="compact"
                       variant="plain"
-                      :to="`/table/${definition[field].constraint.table}`"
+                      :to="`/table/${recordStore.definition[field].constraint.table}`"
                     )
                 v-text-field(
                   v-if="def.type.match(/STRING/) && !def.constraint"
-                  v-model="record[field]"
+                  v-model="recordStore.record[field]"
                   hide-details
                   single-line
                   density="compact"
-                  :color="delta && field in delta.violations ? 'error' : undefined"
+                  :color="recordStore.delta && recordStore.delta.violations && field in recordStore.delta.violations ? 'error' : undefined"
                 )
                 v-switch(
                   v-if="def.type.match(/TINY|BOOL/)"
-                  v-model="record[field]"
+                  v-model="recordStore.record[field]"
                   color="primary"
                   false-value="0"
                   true-value="1"
@@ -77,9 +78,9 @@ v-form(
                 )
                 date-input(
                   v-if="def.type == 'DATE'" 
-                  v-model="record[field]"
-                  v-bind:min="('dateDelimiter' in def) && ('min' in def.dateDelimiter) && ('target' in def.dateDelimiter.min) ? record[def.dateDelimiter.min.target] : false"
-                  v-bind:max="('dateDelimiter' in def) && ('max' in def.dateDelimiter) && ('target' in def.dateDelimiter.max) ? record[def.dateDelimiter.max.target] : false"
+                  v-model="recordStore.record[field]"
+                  v-bind:min="('dateDelimiter' in def) && ('min' in def.dateDelimiter) && ('target' in def.dateDelimiter.min) ? recordStore.record[def.dateDelimiter.min.target] : false"
+                  v-bind:max="('dateDelimiter' in def) && ('max' in def.dateDelimiter) && ('target' in def.dateDelimiter.max) ? recordStore.record[def.dateDelimiter.max.target] : false"
                 )
               template.immutable(v-else) {{ val }}
             td(v-if="debugStore.active")
@@ -90,7 +91,7 @@ v-form(
     template.loading(v-else v-slot:text) Loading
 
   v-card(
-    v-if="referencedBy && referencedBy.length"
+    v-if="recordStore.relatingRecords && recordStore.relatingRecords.length"
     prepend-icon="mdi-human-male-girl"
     title="Required by"
   )
@@ -105,7 +106,7 @@ v-form(
             th Type
             th Identified by
         tbody 
-          tr(v-for="reference in referencedBy") 
+          tr(v-for="reference in recordStore.relatingRecords") 
             td
               v-btn(
                 :to="`/table/${reference.Type}/${reference._PK}`"
@@ -116,7 +117,7 @@ v-form(
             td {{ reference.Ident }}
 </template>
 <script setup>
-import { useRecordsStore } from '~/stores/records'
+import { getRecordStore } from '~/stores/records'
 import dateInput from '~/components/dateInput'
 import { useDebugStore } from '~/stores/debug'
 import { useAutocompleteStore } from '~/stores/autocomplete'
@@ -125,35 +126,24 @@ import { reactive } from 'vue'
 const route = useRoute(),
   table = route.params.table,
   id = route.params.id,
-  recordsStore = useRecordsStore(),
+  recordStore = getRecordStore(table, id),
   debugStore = useDebugStore(),
   autocompleteStore = useAutocompleteStore()
 
-recordsStore.fetchRecord(table, id)
+recordStore.fetchRecord()
 autocompleteStore.fetchCompleterData(table)
 
-const record = computed(() => recordsStore.record(table, id))
-const definition = computed(() => recordsStore.definition(table))
-const referencedBy = computed(() => recordsStore.referencedBy(table, id))
-const delta = computed(() => recordsStore.delta(table, id))
-
-watch(recordsStore.record(table,id), (newVal) => {
-  recordsStore.fetchDelta(table, id, newVal)
-})
-
 const title = computed(() => {
-  const rec = recordsStore.record(table, id)
-  if (!rec) return {
+  if (!('_identifiedBy' in recordStore.definition)) return {
     icon: undefined,
     label: undefined
   }
-  const def = recordsStore.definition(table)
   return {
-    icon: def._tableIcon,
-    label: def._tableTitle + ': '
-      + def._identifiedBy.replaceAll(
+    icon: recordStore.definition._tableIcon,
+    label: recordStore.definition_tableTitle + ': '
+      + recordStore.definition._identifiedBy.replaceAll(
         /\{\{\s?(.*?)\s\}\}/g, 
-        (_match, field) => rec[field]
+        (_match, field) => recordStore.record[field]
       )  
   }
 })

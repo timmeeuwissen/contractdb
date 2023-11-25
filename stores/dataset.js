@@ -12,8 +12,10 @@ export const getDatasetStore = (queryable) => (defineStore(
     const dataReady = ref(false)
     
     const fetch_data = async () => {
-      dataReady.value = false
-      const { data } = await useFetch(`/api/table/${queryable}`)
+      const { data } = await useFetch(
+        `/api/table/${queryable}`,
+        { server: true }
+      )
       headers.value = data.value.headers
       records.value = data.value.records
       tableConfiguration.value = data.value.tableConfiguration

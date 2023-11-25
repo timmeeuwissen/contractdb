@@ -1,74 +1,53 @@
 import { defineStore } from 'pinia'
 
-export const useRecordsStore = defineStore('recordsStore', {
-  state: () => ({
-    records: {},
-    deltas: {},
-    definitions: {},
-    relatingRecords: {}
-  }),
-  actions: {
-    async fetchRecord(table, id) {
-      const response = await useFetch(`/api/table/${table}/${id}`)
-      if (!(table in this.records)) {
-        this.records[table] = {}
+export const getRecordStore = (queryable, id) => (
+  defineStore(
+    `recordStore_${queryable}_${id}`, 
+    () => {
+      const 
+        record = ref({}),
+        definition = ref({}),
+        relatingRecords = ref({}),
+        dataReady = ref(false),
+        delta = ref({})
+
+      const fetchRecord = async () => {
+        const { data } = await useFetch(
+          `/api/table/${queryable}/${id}`,
+          { server: true }
+        )
+        record.value = data.value.record
+        definition.value = data.value.definitions
+        relatingRecords.value = data.value.relatingRecords
+        dataReady.value = true
       }
-      if (!(table in this.definitions)) {
-        this.definitions[table] = response.data.value.definitions
+
+      const fetchDelta = async () => {
+        const { data } = await useFetch(
+          `/api/table/${queryable}/${id}?mode=delta`,
+          { 
+            server: true,
+            method: 'PUT',
+            body: record.value,
+          }
+        )
+        delta.value = data.value
       }
-      if (!(table in this.records)) {
-        this.relatingRecords[table] = {}
+
+      watch(record, _newVal => fetchDelta())
+      
+      return {
+        fetchRecord,
+        fetchDelta,
+        record,
+        delta,
+        definition,
+        relatingRecords,
+        dataReady,
       }
-      if (!(table in this.relatingRecords)) {
-        this.relatingRecords[table][response.data.value.record[response.data.value.primaryKey]] = response.data.value.relatingRecords
-      }
-      this.records[table][response.data.value.record[response.data.value.primaryKey]] =  
-        response.data.value.record
     },
-    async fetchDelta(table, id, formData) {
-      if (!(table in this.deltas)) this.deltas[table] = {}
-      const response = await useFetch(
-        `/api/table/${table}/${id}?mode=delta`,
-        { 
-          method: 'PUT',
-          body: formData,
-        }
-      )
-      this.deltas[table][id] = response.data.value
+    {
+      persist: true
     }
-  },
-  getters: {
-    record: state => {
-      return (table, id) => {
-        if (state.records[table] && state.records[table][id]) {
-          return state.records[table][id]
-        }
-        return undefined
-      }
-    },
-    delta: state => {
-      return (table, id) => {
-        if (state.deltas[table] && state.deltas[table][id]) {
-          return state.deltas[table][id]
-        }
-        return undefined
-      }
-    },
-    definition: state => {
-      return (table) => {
-        if (state.definitions[table]) {
-          return state.definitions[table]
-        }
-        return undefined
-      }
-    },
-    referencedBy: state => {
-      return (table, id) => {
-        if (state.relatingRecords[table][id]) {
-          return state.relatingRecords[table][id]
-        }
-        return undefined
-      }
-    }
-  }
-})
+  )()
+)

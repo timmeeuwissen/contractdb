@@ -1,4 +1,7 @@
 <template lang="pug">
+//- p DSHeaders: {{ datasetStore.headers }}
+//- p DSCHeaders: {{ props.datasetColumnsStore.headers }}
+//- p DSCDSHeaders: {{ props.datasetColumnsStore.dsHeaders }}
 v-dialog(v-model="dialogDelete" max-width="500px")
   v-card
     v-card-title.text-h5 Are you sure you want to remove this item
@@ -31,9 +34,9 @@ v-card(v-if="props.datasetStore.dataReady")
   //- skipping all keys prefixed with underscore
   //- those are informationsets targetet for visual aid
   v-data-table.tableList(
-    :headers="datasetColumnsStore.headersToShow"
+    :headers="props.datasetColumnsStore.headersToShow"
     :items="props.datasetStore.records"
-    item-value="_PK"
+    item-value="_PK"    
     show-select
     density="compact"
     hover
@@ -99,20 +102,20 @@ v-card(v-if="props.datasetStore.dataReady")
           )
             v-list-item.text-no-wrap(
               draggable
-              v-for="(column, index) in datasetColumnsStore.sorted"
+              v-for="(column, index) in props.datasetColumnsStore.sorted"
               :key="index"
             )
               input(
-                v-model="datasetColumnsStore.sorted"
+                v-model="props.datasetColumnsStore.sorted"
                 type="hidden"
               )
               v-checkbox(
                 prepend-icon="mdi-drag-horizontal"
                 :label="column"
-                v-model="datasetColumnsStore.checked"
+                v-model="props.datasetColumnsStore.checked"
                 :value="column"
                 density="compact"
-                :disabled="column in datasetColumnsStore.hideableHeaders && datasetColumnsStore.hideableHeaders[column] == false"
+                :disabled="column in props.datasetColumnsStore.hideableHeaders && props.datasetColumnsStore.hideableHeaders[column] == false"
                 hide-details
               )
               
@@ -210,24 +213,22 @@ v-card(
 <script setup>
 import { ref, watch } from 'vue'
 import { useQuicklinkStore } from '~/stores/quicklinks'
-import { getDatasetColumnsStore } from '~/stores/datasetColumns'
 
 const props = defineProps([
   'target', 
   'type', 
   'datasetStore', 
+  'datasetColumnsStore',
   'identifiedPerTable', 
 ])
 const emit = defineEmits(['delete', 'edit'])
 const route = useRoute()
 
 const quicklinksStore = useQuicklinkStore()
-const datasetColumnsStore = getDatasetColumnsStore(props.target)
 
 const dialogDelete = ref(false)
 const currentItem = ref({})
 const selectedRecords = ref([])
-
 
 const dialogExport = ref(false)
 const exportFormat = ref('CSV')

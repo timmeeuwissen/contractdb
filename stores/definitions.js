@@ -8,7 +8,10 @@ export const debugDefinitionStore = defineStore(
     }),
     actions: {
       async fetchTableData(table) {
-        const response = await useFetch(`/api/table/${table}/definition`)
+        const response = await useFetch(
+          `/api/table/${table}/definition`,
+          { server: true }
+        )
         this.perTable = { ...this.perTable, ...response.data.value }
       }
     },
