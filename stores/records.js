@@ -8,6 +8,7 @@ export const getRecordStore = (queryable, id) => (
         record = ref({}),
         definition = ref({}),
         relatingRecords = ref({}),
+        decodedColumns = ref({}),
         dataReady = ref(false),
         delta = ref({})
 
@@ -19,6 +20,7 @@ export const getRecordStore = (queryable, id) => (
         record.value = data.value.record
         definition.value = data.value.definitions
         relatingRecords.value = data.value.relatingRecords
+        decodedColumns.value = data.value.decodedColumns
         dataReady.value = true
       }
 
@@ -44,6 +46,7 @@ export const getRecordStore = (queryable, id) => (
         definition,
         relatingRecords,
         dataReady,
+        decodedColumns,
       }
     },
     {

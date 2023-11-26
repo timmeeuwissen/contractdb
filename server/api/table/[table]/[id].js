@@ -3,7 +3,7 @@ import config from '~/config.json'
 import { getAllPrimaryKeys, getConstraintsForTable, getUniques } from '~/helpers/dbSchema'
 import { getType } from '~/helpers/dbSchema'
 import { get_stringsForTables, get_relatingRecordsIdentified } from '~/helpers/identify'
-import mysql from 'mysql2'
+import { decode_columns } from '~/helpers/dbCommentConfig'
 
 export default defineEventHandler(async event => {
   const 
@@ -80,6 +80,7 @@ export default defineEventHandler(async event => {
   else if (event.node.req.method && event.node.req.method == 'GET') {
 
     const foreignKeys = await getConstraintsForTable(tableName)
+    const decodedColumns = await decode_columns(config.connection.database, tableName)
 
     const definitions = defRec.reduce(
       (acc, def) => ({
@@ -126,6 +127,7 @@ export default defineEventHandler(async event => {
       foreignKeys, 
       primaryKey,
       relatingRecords,
+      decodedColumns,
     }
   }
 })

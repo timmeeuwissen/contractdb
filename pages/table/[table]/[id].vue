@@ -21,6 +21,7 @@ v-form(
           )
             th
               | {{ def.title }}
+              | {{ recordStore.decodedColumns }}
               //- v-icon(
               //-   icon="mdi-delta"
               //-   v-if="recordStore.delta && recordStore.delta.changed && field in recordStore.delta.changed"

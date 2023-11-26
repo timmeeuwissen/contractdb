@@ -22,9 +22,6 @@
 - able to generate a PDF for a detail page of a queryable
   - use https://stackoverflow.com/questions/70078596/ how-to-convert-component-string-as-real-component-in-vue to load templates from the config
   - generate the PDF with https://sidebase.io/nuxt-pdf/getting-started/quick-start
-- Fast links to tables by clicking an icon in the main navigation bar of an overview
-- Show which importers are applicable to a queryable source
-- Have a default importer ready for any queryable source
 
 ## queryables
 - v able to rename a queryable to what you want it to look like within the GUI
@@ -36,7 +33,14 @@
 - v enable the user to click further from this queryable to the detailed page of a related record
 - v automatically determine how to represent a record based on the most prominent features of the related queryable
 - v overrule how to represent records of a queryable by config
+- v Quick links to tables by clicking an icon in the main navigation bar of an overview
 - be able to rename a column title
+- have bulk actions in the overview
+  - delete
+  - set a certain value to a certain state
+- Have a default importer ready for any queryable source
+- Show which importers are applicable to a queryable source
+- group columns in column selecter per window on detailpage
 
 
 ## records
@@ -46,6 +50,8 @@
 - v date-time fields 
 - v date-time fields can look to one another when a date-range is intended
 - v you can search a referenced queryable for their records by the most prominent details of their records
+- extra field in database used for meta description
+  - D\[1,1] = means Detailpage, window 1, position 1
 
 ## translations
 - enable the user to rename *everything*
