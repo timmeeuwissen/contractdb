@@ -11,17 +11,20 @@ v-form(
   @prevent.default="updateRecord"
   ref="dataForm"
 )
-  v-card
-    template(v-slot:title).text-left Record data
+  v-card(
+    v-for="fieldPositions, id in recordStore.decodedColumns.detailWindowPosition"
+    :key="id"
+  )
+    template(v-slot:title).text-left Record data {{ id }}
     template(v-slot:text v-if="recordStore.dataReady")
       v-table
         tbody
           tr(
-            v-for="(val, field) in recordStore.record" :set="def = recordStore.definition[field]"
+            v-for="fieldPosition in fieldPositions" 
+            :set="def = recordStore.definition[fieldPosition.name]"
           )
             th
               | {{ def.title }}
-              | {{ recordStore.decodedColumns }}
               //- v-icon(
               //-   icon="mdi-delta"
               //-   v-if="recordStore.delta && recordStore.delta.changed && field in recordStore.delta.changed"
@@ -30,48 +33,48 @@ v-form(
               //-   icon="mdi-alert-circle"
               //-   v-if="recordStore.delta && recordStore.delta.violations && field in recordStore.delta.violations"
               //- )
-            td
+            td(:set="val = recordStore.record[fieldPosition.name]")
               template(v-if="def.mutable")
                 v-text-field(
                   v-if="def.type.match(/LONG|INT/) && !def.constraint"
-                  v-model="recordStore.record[field]"
+                  v-model="recordStore.record[fieldPosition.name]"
                   hide-details
                   single-line   
                   type="number"
                   density="compact"
-                  :color="recordStore.delta && recordStore.delta.violations && field in recordStore.delta.violations ? 'error' : undefined"
-                )            
+                  :color="recordStore.delta && recordStore.delta.violations && fieldPosition.name in recordStore.delta.violations ? 'error' : undefined"
+                )
                 v-autocomplete(
-                  v-if="def.constraint"
-                  v-model="recordStore.record[field]"
+                  v-if="def.constraint && def.constraint.table"
+                  v-model="recordStore.record[fieldPosition.name]"
                   :placeholder="`Select a ${def.constraint.table}`"
                   :items="autocompleteStore.completerData(def.constraint.table)"
                 )
                   template(v-slot:append)
                     v-btn(
                       icon="mdi-pencil"
-                      :disabled="recordStore.record[field] ? false : true"
+                      :disabled="recordStore.record[fieldPosition.name] ? false : true"
                       density="compact"
                       variant="plain"
-                      :to="`/table/${recordStore.definition[field].constraint.table}/${recordStore.record[field]}`"
+                      :to="`/table/${recordStore.definition[fieldPosition.name].constraint.table}/${recordStore.record[fieldPosition.name]}`"
                     )
                     v-btn(
                       icon="mdi-table"
                       density="compact"
                       variant="plain"
-                      :to="`/table/${recordStore.definition[field].constraint.table}`"
+                      :to="`/table/${recordStore.definition[fieldPosition.name].constraint.table}`"
                     )
                 v-text-field(
                   v-if="def.type.match(/STRING/) && !def.constraint"
-                  v-model="recordStore.record[field]"
+                  v-model="recordStore.record[fieldPosition.name]"
                   hide-details
                   single-line
                   density="compact"
-                  :color="recordStore.delta && recordStore.delta.violations && field in recordStore.delta.violations ? 'error' : undefined"
+                  :color="recordStore.delta && recordStore.delta.violations && fieldPosition.name in recordStore.delta.violations ? 'error' : undefined"
                 )
                 v-switch(
                   v-if="def.type.match(/TINY|BOOL/)"
-                  v-model="recordStore.record[field]"
+                  v-model="recordStore.record[fieldPosition.name]"
                   color="primary"
                   false-value="0"
                   true-value="1"
@@ -79,7 +82,7 @@ v-form(
                 )
                 date-input(
                   v-if="def.type == 'DATE'" 
-                  v-model="recordStore.record[field]"
+                  v-model="recordStore.record[fieldPosition.name]"
                   v-bind:min="('dateDelimiter' in def) && ('min' in def.dateDelimiter) && ('target' in def.dateDelimiter.min) ? recordStore.record[def.dateDelimiter.min.target] : false"
                   v-bind:max="('dateDelimiter' in def) && ('max' in def.dateDelimiter) && ('target' in def.dateDelimiter.max) ? recordStore.record[def.dateDelimiter.max.target] : false"
                 )
@@ -141,7 +144,7 @@ const title = computed(() => {
   }
   return {
     icon: recordStore.definition._tableIcon,
-    label: recordStore.definition_tableTitle + ': '
+    label: recordStore.definition._tableTitle + ': '
       + recordStore.definition._identifiedBy.replaceAll(
         /\{\{\s?(.*?)\s\}\}/g, 
         (_match, field) => recordStore.record[field]
