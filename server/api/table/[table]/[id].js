@@ -46,6 +46,7 @@ export default defineEventHandler(async event => {
     let violations = {},
         updated = {},
         error = {}
+        
     if(updateClause.keys.length){
       await connection().promise().beginTransaction()
       try {
@@ -73,7 +74,7 @@ export default defineEventHandler(async event => {
       
       await connection().promise().rollback()
     }
-    console.log({changed, violations, error, updated})
+
     return {changed, violations, error, updated}
 
   }

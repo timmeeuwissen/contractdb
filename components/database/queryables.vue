@@ -38,7 +38,7 @@ v-card(
         ) {{ procedure.Name }}
 </template>
 <script setup>
-import {useQueryablesStore} from '~/stores/tables'
+import {useQueryablesStore} from '~/stores/queryables'
 const queryablesStore = useQueryablesStore()
 queryablesStore.fetchTables()
 const emit = defineEmits(['clicked:queryable'])

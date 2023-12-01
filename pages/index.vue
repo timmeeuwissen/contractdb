@@ -1,62 +1,61 @@
 <template lang="pug">
-v-card
+v-card.px-2.mx-2(
+  v-for="info, index in data" :key="index"
+)
+  v-card-title {{ info.title }}
   v-card-text
-    logo-component
-v-card
-  v-card-title What to do
-  v-card-text 
-    v-list(lines="one")
-      v-list-item(to="/migrate")
-        template(v-slot:prepend)
-          v-icon(icon="mdi-database-import-outline")
-        v-list-item-title Migration wizard
-        v-list-item-subtitle Import and export data to and from your database
-v-card(color="warning" v-if="debugStore.active")
-  v-card-title Config stuff
-  v-card-text 
-    v-list(lines="one" color="warning")
-      v-list-item(to="/debug/database")
-        template(v-slot:prepend)
-          v-icon(icon="mdi-database")
-        v-list-item-title  Database
-        v-list-item-subtitle See the database from wich everything you see is derived
-      v-list-item(to="/debug/config")
-        template(v-slot:prepend)
-          v-icon(icon="mdi-code-json")
-        v-list-item-title Configuration
-        v-list-item-subtitle Check the configuration which generates everything you see
-      v-list-item(to="/debug/language")
-        template(v-slot:prepend)
-          v-icon(icon="mdi-translate")
-        v-list-item-title Translations
-        v-list-item-subtitle Check translations of everything you see
-      v-list-item(to="/access")
-        template(v-slot:prepend)
-          v-icon(icon="mdi-security")
-        v-list-item-title Access
-        v-list-item-subtitle Manage who can see what
-      v-list-item(to="/api")
-        template(v-slot:prepend)
-          v-icon(icon="mdi-api")
-        v-list-item-title API Access
-        v-list-item-subtitle Manage what systemscan do with your data
-
-v-card(v-if="queryables.length")
-  v-card-title Quick links
-  v-card-text 
-    v-list(lines="one" color="warning")
-      v-list-item(v-for="queryable in queryables" :to="queryable.to")
-        template(v-slot:prepend)
-          v-icon(:icon="queryable.icon")
-        v-list-item-title {{ queryable.title }}
-
+    v-row
+      v-col(
+        cols="4"
+        :order="index % 2 ? 'last' : 'first'"
+      )
+        v-parallax(
+          height="200px"
+          :src="info.img"
+        )
+      v-col(cols="8") {{ info.text }}
 </template>
 <script setup>
-import { useDebugStore } from '~/stores/debug'
-import LogoComponent from '~/components/logo.vue'
-import { useQuicklinkStore } from '~/stores/quicklinks'
-
-const debugStore = useDebugStore()
-const quicklinksStore = useQuicklinkStore()
-const queryables = computed(() => quicklinksStore.fullQueryables)
+const data = [
+  {
+    img: '/david-pupaza-Q9-QEy1_jYI-unsplash.jpg',
+    title: 'Backend',
+    text: 'Unwilling or able to invest in writing the management systems behind your services? ' +
+      'We\'ve got you! Either directly connect to a MySQL database, or connect T.I.M over API to your ' +
+      'services to ingest, transform and publish your data. '
+  },
+  {
+    img: '/benjamin-lehman-GNyjCePVRs8-unsplash.jpg',
+    title: 'Storage',
+    text: 'Don\'t want anyone to have your data? We don\'t! You connect with database credentials straight ' +
+      ' to your database and we do the rest! There is no development, no waiting, no configuring needed. ' +
+      ' our systems connect to your datastorage, and interpret the structure your database already provides. ' +
+      ' As long as you are using MySQL, we will understand how your data is structured and immediately ' +
+      ' provide you with a GUI that makes sense. '
+  },
+  {
+    img: '/resource-database-F_z2cHsOXnM-unsplash.jpg',
+    title: 'That one thing',
+    text: 'Such a horror to buy a system and miss that one field and having to invest large amounts of ' +
+      ' "consultancy" hours to change the system. With T.I.M, you change your table definition, and ' +
+      ' it\'s done!. It\'s YOUR data, and YOU should be able to work with it the way that suits YOU best. '
+  },
+  {
+    img: '/thomas-le-pRJhn4MbsMM-unsplash.jpg',
+    title: 'Marketplace',
+    text: 'In order to be most effective, we enable you to expand your database with battle-proven ' +
+      ' datastructures. Have a CRM, but want to store contracts as well? Just go to the marketplace ' +
+      ' , click "add contract management" and see your abilities grow! '
+  },
+  {
+    img: '/manahil-manstashah-4pdahuUVGZs-unsplash.jpg',
+    title: 'Connect',
+    text: 'One of T.I.M\'s most unique features is that you can connect your database in many ways. ' +
+      ' I.e. you can pick any flat csv file and import it into your layered datastructure. And do the  ' +
+      ' same thing in reverse. We make it easy to connect to a random data-source, take that data and ' +
+      ' store it in your database, or the other way around by generating API\'s, webhooks, API contracts ' +
+      ' in many formats. '
+  },
+  
+]
 </script>

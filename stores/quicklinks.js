@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import { useQueryablesStore } from './tables'
+import { useQueryablesStore } from './queryables'
 
 export const useQuicklinkStore = defineStore(
   'quicklinkStore', 

@@ -2,7 +2,7 @@ import connection from '~/helpers/connection'
 import mysql from 'mysql2'
 import config from '~/config.json'
 
-const systemTables = ['mysql', 'performance_schema', 'sys']
+const systemTables = ['information_schema', 'mysql', 'performance_schema', 'sys']
 const flagMap = [
   ['SERVER_STATUS_IN_TRANS',             0x0001],	// a transaction is active
   ['SERVER_STATUS_AUTOCOMMIT',           0x0002],	// auto-commit is enabled
@@ -213,7 +213,7 @@ export const getUniques = async (database, table) => {
       `and information_schema.KEY_COLUMN_USAGE.CONSTRAINT_NAME = information_schema.TABLE_CONSTRAINTS.CONSTRAINT_NAME ` +
       `and information_schema.KEY_COLUMN_USAGE.TABLE_NAME = information_schema.TABLE_CONSTRAINTS.TABLE_NAME ` +
 
-      `where information_schema.TABLE_CONSTRAINTS.CONSTRAINT_SCHEMA not in ('mysql', 'performance_schema', 'sys') ` +
+      `where information_schema.TABLE_CONSTRAINTS.CONSTRAINT_SCHEMA not in (${systemTables.map(key => `'${key}'`).join(',')}) ` +
       `and information_schema.TABLE_CONSTRAINTS.CONSTRAINT_TYPE in ('UNIQUE', 'PRIMARY KEY') `
     ))[0].reduce((acc, rec) => {
     
@@ -274,6 +274,23 @@ export const get_tableIndices = async (database, table) => {
       {}
     )
   return tableIndices[database][table]
+}
+
+export const getSchema = async () => {
+  const [results] = await connection().promise().query(
+    `select TABLE_NAME, COLUMN_NAME ` +
+    `from information_schema.columns ` + 
+    `where TABLE_SCHEMA not in (${systemTables.map(key => `'${key}'`).join(',')})`
+  )
+  return results.reduce((acc, rec) => {
+    if(!(rec.TABLE_NAME in acc)) {
+      acc[rec.TABLE_NAME] = []
+    }
+
+    acc[rec.TABLE_NAME].push(rec.COLUMN_NAME)
+
+    return acc
+  }, {})
 }
 
 export const get_views = database => 

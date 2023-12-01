@@ -5,10 +5,15 @@ export default defineNuxtConfig({
   devtools: {
     enabled: true,
   },
+  runtimeConfig: {
+    jwtSecret: '' // can be overridden as env var
+  },
   pages: true,
   css: [
     '@mdi/font/css/materialdesignicons.min.css',
-    'vuetify/lib/styles/main.sass'
+    'vuetify/lib/styles/main.sass',
+    'codemirror/addon/hint/show-hint.css',
+    'codemirror/lib/codemirror.css'
   ],
   build: {
     transpile: ['vuetify'],
@@ -21,6 +26,7 @@ export default defineNuxtConfig({
     '@pinia-plugin-persistedstate/nuxt',
     '@nuxtjs/device',
     '@nuxtjs/i18n',
+    '@vite-pwa/nuxt',
     (_options, nuxt) => {
       nuxt.hooks.hook('vite:extendConfig', (config) => {
         // @ts-expect-error

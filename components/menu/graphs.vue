@@ -12,7 +12,7 @@ v-list(
   )
   v-list-item(
     v-for="(graph, graphIndex) in graphsStore.graphs.filter(graph => !props.rail || (props.rail && graph.icon))"
-    :to="`/graph/${graphIndex}`"
+    :to="`/TIM/graph/${graphIndex}`"
     :prepend-icon="graph.icon"
     link
     :title="graph.title"

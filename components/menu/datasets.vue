@@ -12,14 +12,14 @@ v-list(
   )
   v-list-item(
     v-for="table in queryablesStore.tables.filter(table => table.inListing && (!props.rail || (props.rail && table.icon)))"
-    :to="`/table/${table.tableName}`"
+    :to="`/TIM/table/${table.tableName}`"
     :prepend-icon="table.icon"
     link
     :title="table.title"
   ) 
 </template>
 <script setup>
-import { useQueryablesStore } from '~/stores/tables'
+import { useQueryablesStore } from '~/stores/queryables'
 const queryablesStore = useQueryablesStore()
 const props = defineProps(['rail'])
 queryablesStore.fetchTables()
