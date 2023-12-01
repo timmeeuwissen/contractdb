@@ -10,7 +10,7 @@ const route = useRoute()
 const layout = ref(undefined)
 
 const determineLayout = () => {
-  if (route.fullPath.match(/^\/TIM\//)){
+  if (route.fullPath.match(/^\/TIM/)){
       layout.value = "tim"
     }
 }
