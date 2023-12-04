@@ -1,7 +1,24 @@
 export const types = {
-  'integer': Number,
-  'date': Date,
-  'string': String,
+  'integer': {
+    to: val => parseInt(val, 10),
+    from: val => val.toString(),
+  },
+  'float': {
+    to: val => parseFloat(val),
+    from: val => val.toString(),
+  },
+  'date': {
+    to: val => new Date(date),
+    from: val => val.toString(),
+  },
+  'string': {
+    to: val => val.toString(),
+    from: val => val
+  },
+  'boolean': {
+    to: val => val ? true : false,
+    from: val => val.toString(),
+  }
 }
 
 // an attribute can be seen as a property of an entity
