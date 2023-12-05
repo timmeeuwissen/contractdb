@@ -67,6 +67,18 @@ describe('an entity', async () => {
           .set_primary('someOtherAttribute')
       ).toThrowError()
     })
+
+    test('you can automatically create or reference the previous instance of an attribute', () => {
+      expect(
+        ent
+          .auto_attribute('someAttribute')
+            .primary()
+          .auto_attribute('someAttribute')
+          .get_primary()
+            .to_string()
+      ).toEqual('someAttribute')
+    })
+
   })
 
 })

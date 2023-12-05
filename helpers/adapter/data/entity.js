@@ -21,10 +21,13 @@ export const entity = (name) => {
 
     get_attribute: attr => attrs[attr],
 
+    // automatically create for convenience
+    auto_attribute: (ident, ...args) => expose.get_attribute(ident) || expose.set_attribute.apply(null, [ident, ...args]),
+    
     set_primary: (ident) => {
       if (primary) throw new Error(`Cannot set primary for ${ident}, already is ${primary}`)
       if (!(ident in attrs)) throw new Error(`Unnknown attribute ${ident}`)
-      primary = ident
+      primary = attrs[ident]
       return expose
     },
 

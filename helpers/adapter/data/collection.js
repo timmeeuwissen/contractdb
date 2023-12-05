@@ -18,12 +18,15 @@ export const collection = (name) => {
 
     // get the entity based on its name. If it doesn't exists, you'll get undefined back
     get_entity: ent => entities[ent],
+
+    // automatically create for convenience
+    auto_entity: (ident, ...args) => expose.get_entity(ident) || expose.set_entity.apply(null, [ident, ...args]),
     
     // flattens the exposure back to the collection
     collection: () => expose,
     
     // returns identifyable string for the collection
-    to_string: () => name
+    to_string: () => name,
   }
   return expose
 }

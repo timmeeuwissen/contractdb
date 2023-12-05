@@ -60,6 +60,17 @@ describe('a collection', async () => {
       )
     })
 
+    test('you can automatically create or reference the previous instance of an entity', () => {
+      expect(
+        coll
+          .auto_entity('someEntity')
+            .set_attribute('someAttribute')
+          .auto_entity('someEntity')
+            .get_attribute('someAttribute')
+            .to_string()
+      ).toEqual('someAttribute')
+    })
+
   })
 
 })
