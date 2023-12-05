@@ -1,7 +1,7 @@
 <template lang="pug">
 v-dialog(
   v-model="showLogin"
-  close-on-content-click="true"
+  :close-on-content-click="true"
 )
   login-component
 

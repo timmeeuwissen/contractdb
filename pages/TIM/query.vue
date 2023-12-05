@@ -5,7 +5,7 @@ v-card
   v-card-text
     sql-editor(
       :code="code"
-      :ref="editor"
+      ref="editor"
     )
   v-card-actions
     v-btn(
@@ -80,11 +80,13 @@ const editor = ref(null)
 const queryStore = useQueryStore()
 
 const execute_allQueries = () => {
-  const queries = editor.value.get_allQueries()
+  const queries = editor.get_allQueries()
   // todo : split queries on semicolon, but not when quoted
+  queryStore.runQuery(queries)
+
 }
 const execute_activeQuery = () => {
-  const query = editor.value.get_activeQuery()
+  const query = editor.get_activeQuery()
   queryStore.runQuery(query)
 }
 </script>
