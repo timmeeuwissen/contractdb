@@ -1,26 +1,4 @@
-export const types = {
-  'integer': {
-    to: val => parseInt(val, 10),
-    from: val => val.toString(),
-  },
-  'float': {
-    to: val => parseFloat(val),
-    from: val => val.toString(),
-  },
-  'date': {
-    to: val => new Date(date),
-    from: val => val.toString(),
-  },
-  'string': {
-    to: val => val.toString(),
-    from: val => val
-  },
-  'boolean': {
-    to: val => val ? true : false,
-    from: val => val.toString(),
-  }
-}
-
+import { types } from "./types"
 // an attribute can be seen as a property of an entity
 // in comparison, a column of a table
 export const attribute = (

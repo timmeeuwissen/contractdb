@@ -9,4 +9,13 @@ describe('a string', async () => {
       to(collection, codeTree)
     ).toEqual('someString')
   })
+
+  test('when there is a binding, it is amended to the collection', () => {
+    const {collection, codeTree} =  from('string {{bind:entityName.attributeName}} binding')
+    expect(
+      collection
+        .get_entity('entityName')
+        .get_attribute('attributeName')
+    )
+  })
 })
