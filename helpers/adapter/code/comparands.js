@@ -4,6 +4,7 @@ export const comparands = [
   {
     name: 'path',
     type: 'path',
+    to: val => 
     test: val => val.match(/^(?<entity>[a-zA-Z0-9_\-]+)\.(?<attribute>[a-zA-Z0-9_\-]+)$/),
   },
   ... Object.entries(types).reduce(
@@ -21,11 +22,6 @@ export const comparands = [
     }, 
     []
   ),
-  {
-    name: 'string',
-    type: 'string',
-    test: () => true
-  },
 ]
 
 export const determineComparand = value => comparands.find(comparand => {

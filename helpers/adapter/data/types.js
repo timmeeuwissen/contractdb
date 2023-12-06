@@ -63,17 +63,16 @@ export const types = {
   }
 }
 
-export const inferanceType = (val, inferanceTypes = types) => (
-  Array.isArray(inferanceTypes) 
-    ? inferanceTypes
-    : Object
-        .entries(inferanceTypes)
-        .reduce(
-          (acc, [type, methods]) => ([...acc, {...methods, type}]),
-          []
-        )
+export const typeArray = Object
+  .entries(types)
+  .reduce(
+    (acc, [type, methods]) => ([...acc, {...methods, type}]),
+    []
   )
-  .find(o => o.test(val))
+
+export const inferanceType = (val, inferanceTypes = typeArray) => 
+  inferanceTypes
+    .find(o => o.test(val))
 
 export const infer = val => {
   const type = inferanceType(val)
