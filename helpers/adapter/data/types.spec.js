@@ -1,5 +1,6 @@
 import { describe, test, expect, beforeEach } from 'vitest'
-import { types } from './types'
+import { types, infer, inferanceType } from './types'
+import { DateTime } from 'luxon'
 
 describe('an integer', async () => {
   test('can be detected positively', () => expect(types.integer.test('9')).toBeTruthy())
@@ -21,8 +22,8 @@ describe('a date', async () => {
   const example = '2023-12-06'
   test('can be detected positively', () => expect(types.date.test(example)).toBeTruthy())
   test('can be detected negatively', () => expect(types.date.test('notadate')).toBeFalsy())
-  test('can convert from string', () => expect(types.date.to(example).toDateString()).toStrictEqual(new Date(2023,11,6,1,1,1).toDateString()))
-  test('can convert to string', () => expect(types.date.from(new Date(2023,11,6,1,1,1))).toStrictEqual(example))
+  test('can convert from string', () => expect(types.date.to(example)).toEqual(DateTime.local(2023,12,6)))
+  test('can convert to string', () => expect(types.date.from(DateTime.local(2023,12,6,12,1,2))).toStrictEqual(example))
   test('what goes in, comes out', () => {
     expect(types.date.from(types.date.to(example))).toStrictEqual(example)
   })
@@ -32,19 +33,16 @@ describe('a datetime', async () => {
   const example = '2023-12-06 12:01:02'
   test('can be detected positively', () => expect(types.datetime.test(example)).toBeTruthy())
   test('can be detected negatively', () => expect(types.datetime.test('notadate')).toBeFalsy())
-  test('can convert from string', () => expect(types.datetime.to(example).toDateString()).toStrictEqual(new Date(2023,11,6,12,1,2).toDateString()))
-  test('can convert to string', () => expect(types.datetime.from(new Date(2023,11,6,12,1,2))).toStrictEqual(example))
+  test('can convert from string', () => expect(types.datetime.to(example)).toEqual(DateTime.local(2023,12,6,12,1,2)))
+  test('can convert to string', () => expect(types.datetime.from(DateTime.local(2023,12,6,12,1,2))).toStrictEqual(example))
   test('what goes in, comes out', () => {
     expect(types.datetime.from(types.datetime.to(example))).toStrictEqual(example)
   })
 })
 
 describe('a string', async () => {
-  test('can be detected positively', () => expect(types.string.test('9.1')).toBeTruthy())
-  test('can be detected signed', () => expect(types.string.test('-9.1')).toBeTruthy())
-  test('can be detected negatively', () => expect(types.string.test('ninepointone')).toBeFalsy())
-  test('can convert from string', () => expect(types.string.to('9.1')).toStrictEqual(9.1))
-  test('can convert to string', () => expect(types.string.from(9.1)).toStrictEqual('9.1'))
+  test('can convert into a string', () => expect(types.string.to(true)).toStrictEqual('true'))
+  test('remains the samen when asked to be a string', () => expect(types.string.from('9.1')).toStrictEqual('9.1'))
 })
 
 describe('a boolean', async () => {
@@ -53,4 +51,19 @@ describe('a boolean', async () => {
   test('can be detected negatively', () => expect(types.boolean.test('notabool')).toBeFalsy())
   test('can convert from string', () => expect(types.boolean.to('false')).toStrictEqual(false))
   test('can convert to string', () => expect(types.boolean.from(false)).toStrictEqual('false'))
+})
+
+describe('type inferance', () => {
+  test('can be asked what it would be', () => expect(inferanceType('false').type).toStrictEqual('boolean'))
+  test('can be asked to auto-infer', () => expect(infer('-1.2')).toStrictEqual(-1.2))
+  
+  const uniqueTest = [{type: 'unique', test: val => val == 'uniqueTest'}]
+  test(
+    'can be asked to auto-infer', 
+    () => expect(
+      inferanceType(
+        'uniqueTest', 
+        uniqueTest
+      ).type
+    ).toStrictEqual(uniqueTest[0].type))
 })

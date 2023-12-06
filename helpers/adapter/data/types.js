@@ -1,3 +1,5 @@
+import { DateTime } from 'luxon'
+
 export const types = {
   'integer': {
     to: val => parseInt(val, 10),
@@ -12,44 +14,69 @@ export const types = {
   'date': {
     to: val => {
       const matches = types.date.test(val).groups
-      const localOffset = (new Date(Date.now())).getTimezoneOffset()
-      return new Date(
-        parseInt(matches.year), 
-        parseInt(matches.month)-1, 
-        parseInt(matches.day),
-        1,
-        1 + (localOffset * -1),
-        1
+      return DateTime.local(
+        parseInt(matches.year),
+        parseInt(matches.month),
+        parseInt(matches.day)
       )
     },
-    from: val => val.toISOString().split(/[T\.]/g)[0],
+    from: val => val.toFormat('yyyy-MM-dd'),
     test: val => val
       .match(/^(?<year>\d{4})\-(?<month>\d{2})\-(?<day>\d{2})$/)
   },
   'datetime': {
     to: val => {
       const matches = types.datetime.test(val).groups
-      const localOffset = (new Date(Date.now())).getTimezoneOffset()
-      return new Date(
+      return DateTime.local(
         parseInt(matches.year), 
-        parseInt(matches.month)-1, 
+        parseInt(matches.month), 
         parseInt(matches.day),
         parseInt(matches.hour),
-        parseInt(matches.minute) + (localOffset * -1),
+        parseInt(matches.minute),
         parseInt(matches.second)
       )
     },
-    from: val => val.toISOString().split(/[T\.]/g).slice(0,2).join(' '),
+    from: val => val.toFormat('yyyy-MM-dd HH:mm:ss'),
     test: val => val
       .match(/^(?<year>\d{4})\-(?<month>\d{2})\-(?<day>\d{2})\s(?<hour>\d{2})\:(?<minute>\d{2})\:(?<second>\d{2})$/)
   },
   'string': {
-    to: val => val.toString(),
-    from: val => val,
+    to: val => {
+      const matches = types.stringTemplate.test.groups
+      return matches.str.replace(/\\"/g,'"')
+    },
+    from: val => `"${val.replace(/"/g,'\\"')}"`,
+    test: val => val.match(/^"(?<str>.*)"$/)
+  },
+  'stringTemplate': {
+    to: val => {
+      const matches = types.stringTemplate.test.groups
+      return matches.template.replace(/\\`/g,'`')
+    },
+    from: val => `\`${val.replace(/`/g,'\\`')}\``,
+    test: val => val.match(/^`(?<template>.*)`$/)
   },
   'boolean': {
     to: val => val == 'false' || !val ? false : true,
     from: val => val.toString(),
     test: val => val.match(/^true|false|1|0$/)
   }
+}
+
+export const inferanceType = (val, inferanceTypes = types) => (
+  Array.isArray(inferanceTypes) 
+    ? inferanceTypes
+    : Object
+        .entries(inferanceTypes)
+        .reduce(
+          (acc, [type, methods]) => ([...acc, {...methods, type}]),
+          []
+        )
+  )
+  .find(o => o.test(val))
+
+export const infer = val => {
+  const type = inferanceType(val)
+  if (type) return type.to(val)
+  return val
 }
