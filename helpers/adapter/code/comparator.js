@@ -17,7 +17,7 @@ export const comp_basic = (() => {
         .join('|')
       })\s?$/`
   )
-  
+
   return { comparators, matchRegex }
 
 })()
