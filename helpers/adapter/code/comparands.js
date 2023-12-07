@@ -1,30 +1,18 @@
-import { types } from "../data/types"
+import { typeArray } from "../data/types"
 
-export const comparands = [
-  {
-    name: 'path',
-    type: 'path',
-    to: val => 
-    test: val => val.match(/^(?<entity>[a-zA-Z0-9_\-]+)\.(?<attribute>[a-zA-Z0-9_\-]+)$/),
+
+export const comparand_path = () => ({
+  type: 'path',
+  to: val => {
+    const [attribute, entity, collection = null] = val.split('.').reverse()
+    return {collection, entity, attribute}
   },
-  ... Object.entries(types).reduce(
-    (acc, [type, transformations]) => {
-      if(transformations.test) {
-        acc.push(
-          {
-            name: type,
-            type,
-            ...transformations
-          }
-        )
-      }
-      return acc
-    }, 
-    []
-  ),
-]
+  from: val => [val.collection, val.entity, val.attribute].filter().join('.'),
+  test: val => val.match(/^(?<collection>[a-zA-Z0-9_\-]+)?\.?(?<entity>[a-zA-Z0-9_\-]+)\.(?<attribute>[a-zA-Z_\-]+)$/),
+})
 
-export const determineComparand = value => comparands.find(comparand => {
+export const determineComparandType = (value, comparandInject = []) => 
+    [...comparandInject, ...typeArray].find(comparand => {
   if(comparand.test(value)) 
     return {...comparand, value}
 })
