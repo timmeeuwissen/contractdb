@@ -1,4 +1,4 @@
-import { typeArray } from "../data/types"
+import { typeArray } from "../../../data/types"
 
 
 export const comparand_path = () => ({
