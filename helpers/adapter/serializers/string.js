@@ -1,5 +1,5 @@
 import { collection } from "../data/collection"
-import * as operations from "../code/operations"
+import operations from "../code/operations"
 import { tree } from "../code/tree"
 
 const strToParts = str => str.split(/(\{\{.*?\}\})/)
