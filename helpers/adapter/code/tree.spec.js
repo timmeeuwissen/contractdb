@@ -1,5 +1,5 @@
 import { describe, test, expect, beforeEach, vi } from 'vitest'
-import { tree } from './tree'
+import { tree, treeInstructions } from './tree'
 
 describe('a code-tree', () => {
   let ct = tree()
@@ -87,7 +87,43 @@ describe('a code-tree', () => {
       expect(fn.mock.lastCall[0].chain).toEqual([op])
       expect(fn.mock.lastCall[1]).toEqual(op)
     })  
+  })
 
+  describe('an operator can steer the tree', () => {
+    test('can step in (like: o_if)', () => {
+      const fn = vi.fn()
+      ct.add_operation([op, [treeInstructions.TREE_STEP_IN]])
+        .add_operation(op)
+        .root().traverse(fn)
+      expect(fn).toHaveBeenCalledTimes(2)
+      expect(fn.mock.lastCall[0].chain).toEqual([op])
+      expect(fn.mock.lastCall[1]).toEqual(op)
+    })  
 
+    test('can step out (like: o_endIf)', () => {
+      const fn = vi.fn()
+      ct.add_operation(op)
+        .stepIn()
+        .add_operation(op)
+        .add_operation([op, [treeInstructions.TREE_STEP_OUT]])
+        .root().traverse(fn)
+      expect(fn).toHaveBeenCalledTimes(3)
+      expect(fn.mock.lastCall[0].chain).toEqual([])
+      expect(fn.mock.lastCall[1]).toEqual(op)
+    })  
+
+    test('can step in again (like: o_else)', () => {
+      const fn = vi.fn()
+      ct.add_operation(op)
+        .stepIn()
+        .add_operation([op, [treeInstructions.TREE_STEP_IN]])
+          .add_operation(op)
+        .add_operation([op, [treeInstructions.TREE_STEP_OUT, treeInstructions.TREE_STEP_IN]])
+          .add_operation(op)
+        .root().traverse(fn)
+      expect(fn).toHaveBeenCalledTimes(5)
+      expect(fn.mock.lastCall[0].chain).toEqual([op, op])
+      expect(fn.mock.lastCall[1]).toEqual(op)
+    })  
   })
 })
