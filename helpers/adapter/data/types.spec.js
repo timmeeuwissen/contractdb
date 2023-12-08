@@ -41,8 +41,8 @@ describe('a datetime', async () => {
 })
 
 describe('a string', async () => {
-  test('can convert into a string', () => expect(types.string.to(true)).toStrictEqual('true'))
-  test('remains the samen when asked to be a string', () => expect(types.string.from('9.1')).toStrictEqual('9.1'))
+  test('can convert into a string representation', () => expect(types.string.to('"some\\"string"')).toStrictEqual('some"string'))
+  test('remains the samen when asked to be a string', () => expect(types.string.from('some"string')).toStrictEqual('"some\\"string"'))
 })
 
 describe('a boolean', async () => {

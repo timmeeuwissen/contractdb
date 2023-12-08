@@ -42,20 +42,20 @@ export const types = {
   },
   'string': {
     to: val => {
-      const matches = types.stringTemplate.test.groups
+      const matches = types.string.test(val).groups
       return matches.str.replace(/\\"/g,'"')
     },
-    from: val => `"${val.replace(/"/g,'\\"')}"`,
+    from: val => `"${val.replace(/"/g,'\\\"')}"`,
     test: val => val.match(/^"(?<str>.*)"$/)
   },
-  'stringTemplate': {
-    to: val => {
-      const matches = types.stringTemplate.test.groups
-      return matches.template.replace(/\\`/g,'`')
-    },
-    from: val => `\`${val.replace(/`/g,'\\`')}\``,
-    test: val => val.match(/^`(?<template>.*)`$/)
-  },
+  // 'stringTemplate': {
+  //   to: val => {
+  //     const matches = types.stringTemplate.test.groups
+  //     return matches.template.replace(/\\`/g,'`')
+  //   },
+  //   from: val => `\`${val.replace(/`/g,'\\`')}\``,
+  //   test: val => val.match(/^`(?<template>.*)`$/)
+  // },
   'boolean': {
     to: val => val == 'false' || !val ? false : true,
     from: val => val.toString(),
