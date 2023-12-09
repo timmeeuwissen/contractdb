@@ -1,6 +1,7 @@
 import { collection } from "../data/collection"
 import operations from "../code/operations"
 import { tree } from "../code/tree"
+import { get_collectionFromCodeTree } from "../serializer"
 
 const strToParts = str => str.split(/(\{\{.*?\}\})/)
 const strToOperation = str => str.match(/^\{\{(?<operation>[^:]+):?(?<arguments>.*)?\}\}/)
@@ -53,6 +54,7 @@ export const toTemplate = (codeTree) => {
 
 export const extract = (input, codeTree) => {
   let result = ''
+  const coll = get_collectionFromCodeTree(codeTree)
   codeTree.traverse(
     (ctx, operation, operationArguments) => {
       let op = operation.apply(null, [ctx, ...operationArguments])
@@ -65,15 +67,17 @@ export const extract = (input, codeTree) => {
       }
     },
     {
-      collection: collection()
+      collection: coll
     }
   )
-  return result
+  return {result}
 
 }
 
+// todo : deal with multiple outputs if they'd occur.
 export const construct = (collection, codeTree) => {
   let output = ''
+  const coll = get_collectionFromCodeTree(codeTree)
   codeTree.traverse(
     (ctx, operation, operationArguments) => {
       let op = operation.apply(null, [ctx, ...operationArguments])

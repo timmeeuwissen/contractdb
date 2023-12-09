@@ -67,16 +67,19 @@ export const tree = (injectExpose = {}) => {
           previous: () => parts[idx-1],
           findNext: (op) => parts.slice(idx+1).find(val => op.name == val.operation.name),
           findPrevious: (op) => parts.slice(undefined, idx-1).find(val => op.name == val.operation.name),
+          findAncestor: (op) => ctx.chain 
+            ? ctx.chain.find(ancestor => ancestor.part.operation.name == op.name) 
+            : undefined,
         }
         
-        cb({...ctx, lookAround}, part.operation, part.operationArguments)
+        const result = cb({...ctx, lookAround}, part.operation, part.operationArguments)
         
         if(continueLayer && stepIn) {
           part.children.traverse(
             cb, 
             {
               ...ctx,
-              chain: [...ctx.chain, part.operation]
+              chain: [...ctx.chain, {part, result}]
             }
           )
         }

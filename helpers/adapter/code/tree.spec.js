@@ -138,6 +138,9 @@ describe('a code-tree', () => {
         expect(ctx.lookAround.next().operationArguments).toEqual(['faux_else'])
         expect(ctx.lookAround.findNext(faux_op).operationArguments[0]).toEqual('faux_op2')
       }
+      if (cnt == 3) {
+        expect(ctx.lookAround.findAncestor(op).part.operationArguments).toEqual(['faux_if']) 
+      }
     })
 
 
