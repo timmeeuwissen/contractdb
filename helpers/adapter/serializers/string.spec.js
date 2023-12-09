@@ -1,12 +1,12 @@
 import { describe, test, expect, beforeEach, vi } from 'vitest'
-import { from, to } from './string'
+import { fromTemplate, toTemplate } from './string'
 import { o_instruction } from '../code/operations/instruction'
 import { o_bind } from '../code/operations/bind'
 
 describe('a string', async () => {
 
   test('when nothing interprets, non-interpretations are consumed as instructions', () => {
-    const codeTree = from('someString')
+    const codeTree = fromTemplate('someString')
     const fn = vi.fn()
     codeTree.traverse(fn)
     expect(fn).toHaveBeenCalledTimes(1)
@@ -15,7 +15,7 @@ describe('a string', async () => {
 })
 
   test('when there is a binding, it is amended to the collection', () => {
-    const codeTree = from('string {{bind:entityName.attributeName}} binding')
+    const codeTree = fromTemplate('string {{bind:entityName.attributeName}} binding')
     const fn = vi.fn()
     codeTree.traverse(fn)
     expect(fn).toHaveBeenCalledTimes(3)
@@ -38,8 +38,18 @@ describe('a string', async () => {
 
   test('we can reconstruct the original template from the code tree', () => {
     const template = 'string {{bind:entityName.attributeName}} binding'
-    const codeTree = from(template)
-    const reconstructed = to(codeTree)
+    const codeTree = fromTemplate(template)
+    const reconstructed = toTemplate(codeTree)
     expect(reconstructed).toEqual(template)
   })
+
+  test('We can extract data from the template providing a template', () => {
+    const template = 'string {{bind:entityName.attributeName}} binding'
+    const input = 'string some information binding'
+    const codeTree = fromTemplate(template)
+    const extracted = extract(input, codeTree)
+    expect(extracted.collection.get_entity('entityName').get_attribute('attributeName')).toEqual('some information')
+  })
+
+
 })

@@ -7,7 +7,7 @@ const strToOperation = str => str.match(/^\{\{(?<operation>[^:]+):?(?<arguments>
 const strToArgs = str => str.split(':')
 
 
-export const from = (str) => {
+export const fromTemplate = (str) => {
   let codeTree = tree()
   const parts = strToParts(str)
   
@@ -28,7 +28,30 @@ export const from = (str) => {
   return codeTree.root()
 }
 
-export const to = (codeTree) => {
+export const toTemplate = (codeTree) => {
+  let result = ''
+  const coll = collection()
+  codeTree.traverse(
+    (ctx, operation, operationArguments) => {
+      let op = operation.apply(null, [ctx, ...operationArguments])
+      let subResult = op.get ? op.get() : ''
+      if (op.implicit) {
+        result += subResult
+      }
+      else {
+        result += '{{' + [operation.name.replace(/^o_/,''), ...operationArguments].join(':') + '}}'
+      }
+    },
+    {
+      collection: coll
+    }
+  )
+  return {
+    collection: coll
+  }
+}
+
+export const extract = (input, codeTree) => {
   let result = ''
   codeTree.traverse(
     (ctx, operation, operationArguments) => {
@@ -46,4 +69,20 @@ export const to = (codeTree) => {
     }
   )
   return result
+
+}
+
+export const construct = (collection, codeTree) => {
+  let output = ''
+  codeTree.traverse(
+    (ctx, operation, operationArguments) => {
+      let op = operation.apply(null, [ctx, ...operationArguments])
+      let subResult = op.eval()
+      output += subResult
+    },
+    {
+      collection: collection()
+    }
+  )
+  return output
 }
