@@ -60,6 +60,11 @@ export const types = {
     to: val => val == 'false' || !val ? false : true,
     from: val => val.toString(),
     test: val => val.match(/^true|false|1|0$/)
+  },
+  'passthrough': {
+    to: val => val,
+    from: val => val,
+    test: () => false
   }
 }
 
