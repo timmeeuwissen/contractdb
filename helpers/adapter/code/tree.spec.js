@@ -126,4 +126,30 @@ describe('a code-tree', () => {
       expect(fn.mock.lastCall[1]).toEqual(op)
     })  
   })
+
+  test('callbacks can look around', () => {
+    let cnt = 0
+
+    const faux_op = () => {};
+    const fn = vi.fn((ctx, op, opArgs) => {
+      cnt += 1
+      if (cnt == 2) {
+        expect(opArgs).toEqual(['faux_if'])
+        expect(ctx.lookAround.next().operationArguments).toEqual(['faux_else'])
+        expect(ctx.lookAround.findNext(faux_op).operationArguments[0]).toEqual('faux_op2')
+      }
+    })
+
+
+    ct.add_operation(faux_op,['faux_op1'])
+      .add_operation([op, [treeInstructions.TREE_STEP_IN]], ['faux_if'])
+        .add_operation(op, ['faux_if_body'])
+      .add_operation([op, [treeInstructions.TREE_STEP_OUT, treeInstructions.TREE_STEP_IN]], ['faux_else'])
+        .add_operation(op, ['faux_else_body'])
+      .add_operation([op, [treeInstructions.TREE_STEP_OUT]], ['faux_endif'])
+      .add_operation(faux_op, ['faux_op2'])
+      .root()
+      .traverse(fn)
+  })
+
 })

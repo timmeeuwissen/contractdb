@@ -20,7 +20,7 @@ export const tree = (injectExpose = {}) => {
         return injectExpose.stepOut().add_operation([
           operation,
           filteredInstructions
-        ])
+        ], operationArguments)
       }
           
       const part = {
@@ -57,10 +57,19 @@ export const tree = (injectExpose = {}) => {
       let continueLayer = true
       ctx.stepOut = () => continueLayer = false
       
-      parts.every(part => {
+      parts.every((part, idx) => {
         let stepIn = true
         ctx.preventStepIn = () => stepIn = false
-        cb(ctx, part.operation, part.operationArguments)
+        
+        const lookAround = {
+          idx,
+          next: () => parts[idx+1],
+          previous: () => parts[idx-1],
+          findNext: (op) => parts.slice(idx+1).find(val => op.name == val.operation.name),
+          findPrevious: (op) => parts.slice(undefined, idx-1).find(val => op.name == val.operation.name),
+        }
+        
+        cb({...ctx, lookAround}, part.operation, part.operationArguments)
         
         if(continueLayer && stepIn) {
           part.children.traverse(
