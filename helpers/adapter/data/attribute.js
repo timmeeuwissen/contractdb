@@ -1,4 +1,5 @@
 import { types } from "./types"
+
 // an attribute can be seen as a property of an entity
 // in comparison, a column of a table
 export const attribute = (
@@ -33,6 +34,8 @@ export const attribute = (
       type = newType
       return expose
     },
+
+    get_type: () => type,
 
     set_nillable: newNillable => {
       properties.nillable = newNillable

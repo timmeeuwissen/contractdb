@@ -1,4 +1,5 @@
 import { attribute } from "./attribute"
+import { bundle } from './bundle'
 
 // an entity can be seen as something that has attributes and is part of a collection
 // in comparison, a table of a database
@@ -6,6 +7,7 @@ export const entity = (name) => {
   const attrs = {}
   const uniques = {}
   let primary = null
+  let bnd;
 
   let expose = {
     // creates an instance of an attribute and returns this and its exposed methods
@@ -44,6 +46,11 @@ export const entity = (name) => {
     inject_expose: exp => {
       expose = {...exp, ...expose}
       return expose
+    },
+
+    get_bundle: () => {
+      if(!bnd) bnd = bundle().inject_expose(expose)
+      return bnd
     },
 
     entity: () => expose,
