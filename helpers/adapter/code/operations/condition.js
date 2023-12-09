@@ -19,4 +19,29 @@ export const o_condition = [
   },
   [treeInstructions.TREE_STEP_IN]
 ]
+
+export const o_else = [
+  (_ctx, sCompFrom, sComparator, sCompTo) => {
+    return {
+      get: () => str,
+      eval: () => true,
+    }
+  },
+  [
+    treeInstructions.TREE_STEP_OUT,
+    treeInstructions.TREE_STEP_IN, 
+  ]
+]
+
+export const o_endif = [
+  (_ctx, sCompFrom, sComparator, sCompTo) => {
+    return {
+      get: () => str,
+      eval: () => true,
+    }
+  },
+  [
+    treeInstructions.TREE_STEP_OUT,
+  ]
+]
 export const o_if = o_condition

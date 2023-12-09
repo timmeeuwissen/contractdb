@@ -8,7 +8,7 @@ export const tree = (injectExpose = {}) => {
   const parts = []
   const expose = {
 
-    add_operation: (opDef) => {
+    add_operation: (opDef, operationArguments = []) => {
       const [operation, instructions = []] = Array.isArray(opDef)
         ? opDef
         : [opDef]
@@ -26,6 +26,7 @@ export const tree = (injectExpose = {}) => {
       const part = {
         operation: operation,
         instructions,
+        operationArguments,
         children: tree({
           root: expose.root,
           stepOut: () => expose,        
@@ -59,11 +60,16 @@ export const tree = (injectExpose = {}) => {
       parts.every(part => {
         let stepIn = true
         ctx.preventStepIn = () => stepIn = false
-        cb(ctx, part.operation)
+        cb(ctx, part.operation, part.operationArguments)
+        
         if(continueLayer && stepIn) {
-          part.children.traverse(cb, {
-            chain: [part.operation, ...ctx.chain]
-          })
+          part.children.traverse(
+            cb, 
+            {
+              ...ctx,
+              chain: [...ctx.chain, part.operation]
+            }
+          )
         }
         return continueLayer
       })

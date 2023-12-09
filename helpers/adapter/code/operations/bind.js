@@ -1,3 +1,5 @@
+import { comparand_path } from "./condition/comparands"
+
 export const o_bind = ({ collection }, sPath, type=null) => {
   const compPath = comparand_path()
   if(!compPath.test(sPath)) {
@@ -11,7 +13,7 @@ export const o_bind = ({ collection }, sPath, type=null) => {
     .auto_attribute(path.attribute, type)
 
   return {
-    get: () => str,
+    get: () => null,
     eval: () => true,
   }
 }

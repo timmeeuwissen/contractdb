@@ -7,36 +7,43 @@ const strToOperation = str => str.match(/^\{\{(?<operation>[^:]+):?(?<arguments>
 const strToArgs = str => str.split(':')
 
 
-export const from = (str, coll = collection()) => {
-  const codeTree = tree()
+export const from = (str) => {
+  let codeTree = tree()
   const parts = strToParts(str)
   
-  const ctx = {
-    collection: coll
-  }
-
   parts.forEach(part => {
     const operation = strToOperation(part)
     if(!operation){
-      codeTree.add_operation(operations.o_instruction(ctx, part))
+      codeTree = codeTree.add_operation(operations.o_instruction, [part])
     }
     else {
-      const [ match, opName, strArgs ] = operation
+      const [ match, opName, strArgs = '' ] = operation
       if (!(`o_${opName}` in operations)) 
         throw new Error(`Nonexisting operation '${opName}' invoked with ${match}`)
-      const args = strToArgs(strArgs.toString())
-      codeTree.add_operation(operations[`o_${opName}`].apply(null, [ctx, ...args]))
+      const args = strToArgs(strArgs)
+      codeTree = codeTree.add_operation(operations[`o_${opName}`], args)
     }
   })
 
-  return {
-    collection: coll,
-    codeTree,
-  }
+  return codeTree.root()
 }
 
-export const to = (collection, codeTree) => {
+export const to = (codeTree) => {
   let result = ''
-  codeTree.traverse(operation => result += operation.get())
+  codeTree.traverse(
+    (ctx, operation, operationArguments) => {
+      let op = operation.apply(null, [ctx, ...operationArguments])
+      let subResult = op.get ? op.get() : ''
+      if (op.implicit) {
+        result += subResult
+      }
+      else {
+        result += '{{' + [operation.name.replace(/^o_/,''), ...operationArguments].join(':') + '}}'
+      }
+    },
+    {
+      collection: collection()
+    }
+  )
   return result
 }
