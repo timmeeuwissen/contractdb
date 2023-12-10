@@ -53,7 +53,6 @@ export const tree = (injectExpose = {}) => {
     },
 
     traverse: (cb, ctx = {}) => {
-      if(!('chain' in ctx)) ctx.chain = []
       let continueLayer = true
       ctx.stepOut = () => continueLayer = false
       
@@ -61,25 +60,16 @@ export const tree = (injectExpose = {}) => {
         let stepIn = true
         ctx.preventStepIn = () => stepIn = false
         
-        const lookAround = {
-          idx,
-          next: () => parts[idx+1],
-          previous: () => parts[idx-1],
-          findNext: (op) => parts.slice(idx+1).find(val => op.name == val.operation.name),
-          findPrevious: (op) => parts.slice(undefined, idx-1).find(val => op.name == val.operation.name),
-          findAncestor: (op) => ctx.chain 
-            ? ctx.chain.find(ancestor => ancestor.part.operation.name == op.name) 
-            : undefined,
-        }
+        const newCtx = expose.constructCtx(ctx, idx)
         
-        const result = cb({...ctx, lookAround}, part.operation, part.operationArguments)
+        const result = cb(newCtx, part.operation, part.operationArguments)
         
         if(continueLayer && stepIn) {
           part.children.traverse(
             cb, 
             {
-              ...ctx,
-              chain: [...ctx.chain, {part, result}]
+              ...newCtx,
+              chain: [...newCtx.chain, {part, result}]
             }
           )
         }
@@ -87,6 +77,23 @@ export const tree = (injectExpose = {}) => {
       })
       return expose
     },
+
+    getParts: () => parts,
+    
+    constructCtx: (ctx, idx) => ({
+      ...ctx,
+      chain: ctx.chain || [],
+      lookAround: {
+        idx,
+        next: () => parts[idx+1],
+        previous: () => parts[idx-1],
+        findNext: (op) => parts.slice(idx+1).find(val => op.name == val.operation.name),
+        findPrevious: (op) => parts.slice(undefined, idx-1).find(val => op.name == val.operation.name),
+        findAncestor: (op) => ctx.chain 
+          ? ctx.chain.find(ancestor => ancestor.part.operation.name == op.name) 
+          : undefined,
+      }
+    }),
 
     root: () => expose,
 

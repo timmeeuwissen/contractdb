@@ -28,7 +28,9 @@ describe('a code-tree', () => {
       const fn = vi.fn()
       ct.add_operation(op).stepIn().add_operation(op).root().traverse(fn)
       expect(fn).toHaveBeenCalledTimes(2)
-      expect(fn.mock.lastCall[0].chain).toEqual([op])
+      const chain = fn.mock.lastCall[0].chain
+      expect(chain.length).toEqual(1)
+      expect(chain[0].part.operation).toEqual(op)
       expect(fn.mock.lastCall[1]).toEqual(op)
     })  
 
@@ -63,7 +65,7 @@ describe('a code-tree', () => {
         .root()
         .traverse(fn)
       expect(fn).toHaveBeenCalledTimes(2)
-      expect(fn.mock.lastCall[0].chain).toEqual([op])
+      expect(fn.mock.lastCall[0].chain[0].part.operation).toEqual(op)
       expect(fn.mock.lastCall[1]).toEqual(op)
     })  
 
@@ -84,7 +86,7 @@ describe('a code-tree', () => {
         .root()
         .traverse(fn)
       expect(fn).toHaveBeenCalledTimes(2)
-      expect(fn.mock.lastCall[0].chain).toEqual([op])
+      expect(fn.mock.lastCall[0].chain[0].part.operation).toEqual(op)
       expect(fn.mock.lastCall[1]).toEqual(op)
     })  
   })
@@ -96,7 +98,7 @@ describe('a code-tree', () => {
         .add_operation(op)
         .root().traverse(fn)
       expect(fn).toHaveBeenCalledTimes(2)
-      expect(fn.mock.lastCall[0].chain).toEqual([op])
+      expect(fn.mock.lastCall[0].chain[0].part.operation).toEqual(op)
       expect(fn.mock.lastCall[1]).toEqual(op)
     })  
 
@@ -122,7 +124,9 @@ describe('a code-tree', () => {
           .add_operation(op)
         .root().traverse(fn)
       expect(fn).toHaveBeenCalledTimes(5)
-      expect(fn.mock.lastCall[0].chain).toEqual([op, op])
+      const chain = fn.mock.lastCall[0].chain
+      expect(chain.length).toEqual(2)
+      expect(chain.reduce((acc, link) => ([...acc, link.part.operation]), [])).toEqual([op, op])
       expect(fn.mock.lastCall[1]).toEqual(op)
     })  
   })
