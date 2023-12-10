@@ -1,3 +1,5 @@
+import { collection } from "./data/collection"
+
 export const get_collectionFromCodeTree = codeTree => {
   const coll = collection()
   codeTree.traverse(
@@ -10,6 +12,10 @@ export const get_collectionFromCodeTree = codeTree => {
         }
       )
       return coll
+    },
+    {
+      collection: coll
     }
   )
+  return coll
 }

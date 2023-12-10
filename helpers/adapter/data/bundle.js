@@ -37,7 +37,10 @@ export const bundle = () => {
     get_record: pk => recordsByPK[pk],
     get_records_without_pk: () => recordsWithoutPK,
     get_records_with_pk: () => recordsByPK,
-    get_records: () => [...recordsWithoutPK, ...Object.values(recordsByPK)],
+    get_records: () => [...Object.values(recordsWithoutPK), ...Object.values(recordsByPK)],
+    
+    to_data: () => expose.get_records().map(rec => rec.get()[0]),
+    
     bundle: () => expose,
 
     // enable chaining

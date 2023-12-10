@@ -54,13 +54,16 @@ export const record = (listeners = {}) => {
     inject_expose: exp => {
       expose = {...exp, ...expose}
       if ('get_primary' in expose) {
-        pk.attr = expose.get_primary().to_string()
+        const primary = expose.get_primary()
+        if (primary) {
+          pk.attr = primary.to_string()
+        }
       }
      return expose
     },
 
-    to_string: () => pk.value.toString(),
-    
+    to_string: () => `${pk.value}`,
+
   }
 
   return expose
