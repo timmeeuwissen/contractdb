@@ -15,6 +15,7 @@ export const o_condition = [
     return {
       get: () => str,
       eval: () => true,
+      parse: () => str,
     }
   },
   [treeInstructions.TREE_STEP_IN]
@@ -25,6 +26,7 @@ export const o_else = [
     return {
       get: () => str,
       eval: () => true,
+      parse: () => str,
     }
   },
   [
@@ -38,6 +40,7 @@ export const o_endif = [
     return {
       get: () => str,
       eval: () => true,
+      parse: () => str,
     }
   },
   [

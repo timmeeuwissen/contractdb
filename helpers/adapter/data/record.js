@@ -35,9 +35,9 @@ export const record = (listeners = {}) => {
       Object.entries(recOriginal).reduce(
         (acc, [key, value]) => {
           if('get_attribute' in expose) {
-            const type = expose.get_attribute(key).get_type()
+            const type = expose.get_attribute(key).get_type() || 'passthrough'
             if (!(type in types)) {
-              throw new Error(`Attribute has a type set which cannot be found in type definitions`)
+              throw new Error(`Attribute has a type (${type}) set which cannot be found in type definitions`)
             }
             acc[key] = types[type].to(value)
           }

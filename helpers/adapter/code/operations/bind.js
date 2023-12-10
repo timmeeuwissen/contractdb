@@ -15,7 +15,26 @@ export const o_bind = ({ collection }, sPath, type=null) => {
     .auto_attribute(path.attribute, type)
 
   return {
-    get: () => null,
+    get: () => {
+      // todo : deal with prior bindings
+      const bundle = collection.get_entity(path.entity).get_bundle()
+      const records = bundle.get_records()
+      const record = records.shift()
+      if (!record) return undefined
+      const [data, _dataOrigin] = record.get()
+      if (path.attribute in data) {
+        return data[path.attribute]
+      }
+      return undefined
+    },
     eval: () => true,
+    parse: (data) => {
+      collection
+        .get_entity(path.entity)
+        .get_bundle()
+          .add_record()
+            .set_value(path.attribute, data)
+      return true
+    },
   }
 }

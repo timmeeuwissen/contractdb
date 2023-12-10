@@ -1,7 +1,8 @@
 import { describe, test, expect, beforeEach, vi } from 'vitest'
-import { fromTemplate, toTemplate } from './string'
+import { fromTemplate, toTemplate, extract, construct } from './string'
 import { o_instruction } from '../code/operations/instruction'
 import { o_bind } from '../code/operations/bind'
+import { get_collectionFromCodeTree } from '../serializer'
 
 describe('a string', async () => {
 
@@ -43,13 +44,33 @@ describe('a string', async () => {
     expect(reconstructed).toEqual(template)
   })
 
-  test('We can extract data from the template providing a template', () => {
+  test('We can extract data from the string providing a template', () => {
     const template = 'string {{bind:entityName.attributeName}} binding'
     const input = 'string some information binding'
     const codeTree = fromTemplate(template)
     const extracted = extract(input, codeTree)
-    expect(extracted.collection.get_entity('entityName').get_attribute('attributeName')).toEqual('some information')
+    
+    expect(
+      extracted.collection
+        .get_entity('entityName')
+        .get_bundle()
+        .to_data()
+    ).toEqual([{attributeName: 'some information'}])
   })
 
+  test('We can construct strings based on a template and some data', () => {
+    const template = 'string {{bind:entityName.attributeName}} binding'
+    const codeTree = fromTemplate(template)
+    const coll = get_collectionFromCodeTree(codeTree)
+    
+    coll
+      .get_entity('entityName')
+        .get_bundle()
+        .add_record()
+          .set_value('attributeName', 'some information')
+
+    const output = construct(coll, codeTree)
+    expect(output).toEqual('string some information binding')
+  })
 
 })

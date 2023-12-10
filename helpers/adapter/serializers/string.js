@@ -53,39 +53,78 @@ export const toTemplate = (codeTree) => {
 }
 
 export const extract = (input, codeTree) => {
-  let result = ''
-  const coll = get_collectionFromCodeTree(codeTree)
-  codeTree.traverse(
-    (ctx, operation, operationArguments) => {
-      let op = operation.apply(null, [ctx, ...operationArguments])
-      let subResult = op.get ? op.get() : ''
-      if (op.implicit) {
-        result += subResult
+  const traverseBFirst = (codeTree, ctx = null) => {
+    // the space between implicit operations is parsed by each other op
+    // first we find the next implicit demarkation, and apply what's to be
+    // found to the evaluable operands and their children.
+    let startIndex = 0
+    let curStr = '',
+      nextStr = input
+    if(!ctx) {
+      ctx = {
+        collection: collection()
+      }
+    }
+    // todo create iterable to step through these parts
+    const parts = codeTree.getParts().reduce(
+      (acc, part, idx) => {
+        let newCtx = codeTree.constructCtx(ctx, idx)
+        return [
+          ...acc, 
+          {
+            ...part, 
+            execOp: part.operation.apply(null, [newCtx, ...part.operationArguments])
+          }
+        ]
+      }, 
+      []
+    )
+    
+    let implicitIndex = 0
+    do {      
+      implicitIndex = parts.findIndex((part, idx) => idx >= startIndex && part.execOp.implicit)
+      if (implicitIndex > -1) {
+        const implicitVal = parts[implicitIndex].execOp.get()
+        const strParts = nextStr.split(implicitVal,2)
+        if (strParts.length < 2) {
+          throw new Error(`Could not find an occurrance of '${implicitVal}' within '${nextStr}'`)
+        }
+        [curStr, nextStr] = strParts
       }
       else {
-        result += '{{' + [operation.name.replace(/^o_/,''), ...operationArguments].join(':') + '}}'
+        [curStr, nextStr] = [nextStr, curStr]
       }
-    },
-    {
-      collection: coll
-    }
-  )
-  return {result}
+      
+      const handout = parts.slice(startIndex, implicitIndex)
+      handout.forEach(part => {
+        debugger
+        const result = part.execOp.parse(curStr)
+        const childCtx = {...ctx, chain: [...(ctx.chain || []), {part, result}]}
+        traverseBFirst(part.children, childCtx)
+      })
+      
+      startIndex = implicitIndex + 1
+
+    } while (implicitIndex > -1)
+
+    return ctx
+  }
+
+  return traverseBFirst(codeTree)
 
 }
 
 // todo : deal with multiple outputs if they'd occur.
 export const construct = (collection, codeTree) => {
   let output = ''
-  const coll = get_collectionFromCodeTree(codeTree)
   codeTree.traverse(
     (ctx, operation, operationArguments) => {
       let op = operation.apply(null, [ctx, ...operationArguments])
-      let subResult = op.eval()
+      let subResult = op.get()
       output += subResult
     },
     {
-      collection: collection()
+      collection
     }
   )
   return output
