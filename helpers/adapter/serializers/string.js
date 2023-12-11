@@ -29,9 +29,8 @@ export const fromTemplate = (str) => {
   return codeTree.root()
 }
 
-export const toTemplate = (codeTree) => {
+export const toTemplate = ({collection, codeTree}) => {
   let result = ''
-  const coll = collection()
   codeTree.traverse(
     (ctx, operation, operationArguments) => {
       let op = operation.apply(null, [ctx, ...operationArguments])
@@ -43,12 +42,11 @@ export const toTemplate = (codeTree) => {
         result += '{{' + [operation.name.replace(/^o_/,''), ...operationArguments].join(':') + '}}'
       }
     },
-    {
-      collection: coll
-    }
+    { collection }
   )
   return {
-    collection: coll
+    result,
+    collection
   }
 }
 

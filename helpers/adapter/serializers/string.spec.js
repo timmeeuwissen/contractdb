@@ -3,6 +3,7 @@ import { fromTemplate, toTemplate, extract, construct } from './string'
 import { o_instruction } from '../code/operations/instruction'
 import { o_bind } from '../code/operations/bind'
 import { get_collectionFromCodeTree } from '../serializer'
+import { collection } from '../data/collection'
 
 describe('a string', async () => {
 
@@ -40,8 +41,8 @@ describe('a string', async () => {
   test('we can reconstruct the original template from the code tree', () => {
     const template = 'string {{bind:entityName.attributeName}} binding'
     const codeTree = fromTemplate(template)
-    const reconstructed = toTemplate(codeTree)
-    expect(reconstructed).toEqual(template)
+    const reconstructed = toTemplate({collection: collection(), codeTree})
+    expect(reconstructed.result).toEqual(template)
   })
 
   test('We can extract data from the string providing a template', () => {
