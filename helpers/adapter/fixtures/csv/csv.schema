@@ -1,0 +1,49 @@
+version 1.2
+@separator ';'
+@quoted
+@permitEmpty
+@totalColumns 8
+name: notEmpty
+// single line comment
+age: range(0, 120)
+/*
+multi
+line
+comment
+*/
+gender: is("m") or is("f") or is("t") or is("n")
+"quoted column identifier": not("somedata") and not("otherdata")
+a_column: is("some string") and $another_column/starts("some string") // can only be some_string, when another_column also starts with some_string
+another_column:
+b_column: is("some string") // must be "some string"
+b_another_column: is($b_column) // must be equal to the contents of b_column
+c_column: in("some string") // must be a substring
+c_another_column: in($c_column) // must be a substring of the contents of c_column
+d_column: regex("[bcm]at") // value should entirely match the regex
+e_column: empty // should always be empty
+e_another_column: notEmpty // cannot be empty
+f_column: unique // this column can only contain unique values
+f_another_column: unique($g_column, $h_column) // the combination of two values should be unique
+g_column: uri // the value should containe a valid uri
+h_column: xDateTime // should containe an XSD Date Time with Timezone expression
+h_another_column: xDateTime(2023-12-11T09:46:33UTC,2023-12-11T09:46:33UTC) // should be a dts between values
+i_column: xDate // the value should contain a valid date
+i_another_column: xDate(1985-01-12, 2090-01-12) // should be a date between any of those two
+j_column: xTime //should contain a valid time
+j_another_column: xTime(01:00:00+02:00, 14:00:00+02:00)
+k_day: is(12)
+k_month: is(1)
+k_year: is(1985)
+k_date: date($k_day, $k_month, $k_year) // checks if the value equals to the parts
+k_date_range: date($k_day, $k_month, $k_year, 1980-01-01, 2000-01-01) // checks if the value is equal and between range
+l_column: uuid // checks if the value is a valid UUID4
+posInt: positiveInteger // value should be a positive integer
+uc: upperCase
+lc: lowerCase
+ident: identical regex("[0-9]") // the value must be the same for all records in the file
+// filexexists explicitly omitted
+// ukDate explicitly omitted
+// integrityCheck explicitly omitted
+any: any("true", "false")
+if_val: is(1) or is(2)
+if_cond: if($if_val/is(1),is("true"),is("false"))

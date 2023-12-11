@@ -29,7 +29,10 @@ export const tree = (injectExpose = {}) => {
         operationArguments,
         children: tree({
           root: expose.root,
-          stepOut: () => expose,        
+          stepOut: () => ({
+            ...expose,
+            stepIn: () => part.children,
+          }),        
         })
       }
       parts.push(part)
@@ -87,6 +90,7 @@ export const tree = (injectExpose = {}) => {
         idx,
         next: () => parts[idx+1],
         previous: () => parts[idx-1],
+        ancestor: () => ctx.chain.length ? ctx.chain[ctx.chain.length - 1] : undefined,
         findNext: (op) => parts.slice(idx+1).find(val => op.name == val.operation.name),
         findPrevious: (op) => parts.slice(undefined, idx-1).find(val => op.name == val.operation.name),
         findAncestor: (op) => ctx.chain 
